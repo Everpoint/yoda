@@ -11,6 +11,7 @@ use yoda::map::Map;
 use yoda::layer::StaticLayer;
 use yoda::render_target::RenderTarget;
 use std::time::Duration;
+use yoda::symbol::CircleSymbol;
 
 fn main() {
     let shape_points = shapefile::reader::ShapeReader::from_path("./examples/data/points_wm.shp").unwrap().read().unwrap();
@@ -48,7 +49,8 @@ fn main() {
 
     let (event_loop, context) = init_window();
 
-    let layer = StaticLayer::new(points);
+    let mut symbol = CircleSymbol { size: 3.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
+    let layer = StaticLayer::new(symbol, points);
     let mut map = Map::new();
     map.set_center((bbox[2] + bbox[0]) / 2.0, (bbox[3] + bbox[1]) / 2.0);
     map.set_resolution((bbox[2] - bbox[0]) / 800.0);

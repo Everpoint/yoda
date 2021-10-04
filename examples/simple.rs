@@ -10,11 +10,13 @@ use glium::backend::glutin::glutin::event::ElementState;
 use yoda::map::Map;
 use yoda::layer::StaticLayer;
 use yoda::render_target::RenderTarget;
+use yoda::symbol::CircleSymbol;
 
 fn main() {
     let (event_loop, context) = init_window();
 
-    let layer = StaticLayer::new(vec![[0.0, 0.0], [100.0, 100.0], [100.0, 0.0]]);
+    let mut symbol = CircleSymbol { size: 10.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
+    let layer = StaticLayer::new(symbol, vec![[0.0, 0.0, 0.0], [100.0, 100.0, 0.0], [100.0, 0.0, 0.0]]);
     let mut map = Map::new();
     map.add_layer(Box::new(layer));
 
