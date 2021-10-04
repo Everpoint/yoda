@@ -26,7 +26,7 @@ impl Map {
         let (x, y) = target.frame().get_dimensions();
         self.position.set_screen_size(x, y);
 
-        for layer in &self.layers {
+        for layer in &mut self.layers {
             layer.draw(target, &self.position);
         }
     }
@@ -45,6 +45,14 @@ impl Map {
 
     pub fn position(&self) -> &MapPosition {
         &self.position
+    }
+
+    pub fn set_center(&mut self, x: f32, y: f32) {
+        self.position.set_center(x, y);
+    }
+
+    pub fn set_resolution(&mut self, resolution: f32) {
+        self.position.set_resolution(resolution);
     }
 
     pub fn control(&mut self) -> MapControl {
@@ -123,6 +131,14 @@ pub struct MapPosition {
 }
 
 impl MapPosition {
+    fn set_center(&mut self, x: f32, y: f32) {
+        self.translate = na::Matrix4::new_translation(&na::Vector3::new(-x, -y, 0.0));
+    }
+
+    fn set_resolution(&mut self, resolution: f32) {
+        self.scale = na::Matrix4::new_scaling(1.0 / resolution);
+    }
+
     fn width_px(&self) -> f32 {
         2.0 / self.screen_scale[(0, 0)]
     }
