@@ -10,6 +10,7 @@ glium = "0.30.2"
 nalgebra = "0.29.0"
 num-traits = "0.2.14"
 notflat = {path = "../notflat"}
+lyon = "0.17.5"
 
 [dev-dependencies]
 shapefile = "0.3.0"

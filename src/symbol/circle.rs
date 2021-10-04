@@ -52,7 +52,7 @@ impl Symbol<Point3> for CircleSymbol {
         self.program.as_ref().unwrap()
     }
 
-    fn convert(&self, point: &Point3) -> Vec<CirclePointVertex> {
+    fn convert(&self, point: &Point3) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
         let mut result = vec![];
         const segments: usize = 16;
         for i in 0..segments {
@@ -76,7 +76,7 @@ impl Symbol<Point3> for CircleSymbol {
             result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color});
         }
 
-        result
+        (result, None)
     }
 }
 

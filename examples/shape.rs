@@ -39,7 +39,7 @@ fn main() {
 
             for z in 0..len {
                 let p = points[z];
-                // points.push([p[0] + i as f32 * width, p[1] + j as f32 * height]);
+                // points.push([p[0] + i as f32 * width, p[1] + j as f32 * height, 0.0]);
                 points.push([p[0], p[1], j as f32 * 30000.0]);
             }
         }
