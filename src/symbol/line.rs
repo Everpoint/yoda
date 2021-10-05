@@ -1,12 +1,11 @@
 use crate::{Color, Polyline, Point3};
 use crate::symbol::Symbol;
-use glium::{Display, Program};
 use lyon::tessellation::geometry_builder::simple_builder;
 use lyon::tessellation::{VertexBuffers, StrokeVertexConstructor, FillTessellator, StrokeOptions, StrokeTessellator};
 use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
 use lyon::tessellation::path::builder::{PathBuilder, Build};
 use lyon::math::point;
-use glium::draw_parameters::PolygonMode::Line;
+use glow::{Context, Program};
 
 pub struct LineSymbol {
     pub width: f32,
@@ -61,9 +60,18 @@ impl StrokeVertexConstructor<LineVertex> for VertexCtor {
 impl Symbol<Polyline> for LineSymbol {
     type Vertex = LineVertex;
 
-    fn compile(&mut self, display: &Display) {
+    fn vertex_shader(&self) -> &str {
+        todo!()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        todo!()
+    }
+
+    fn compile(&mut self, context: &Context) {
         if self.program.is_none() {
-            self.program = Some(glium::Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap());
+            todo!()
+            // self.program = Some(glium::Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap());
         }
     }
 
@@ -91,7 +99,8 @@ impl Symbol<Polyline> for LineSymbol {
         builder.build();
 
         let VertexBuffers {vertices, indices} = buffers;
-        (vertices, Some(indices))
+        // (vertices, Some(indices))
+        todo!()
     }
 }
 
@@ -100,5 +109,3 @@ pub struct LineVertex {
     position: Point3,
     color: Color,
 }
-
-implement_vertex!(LineVertex, position, color);

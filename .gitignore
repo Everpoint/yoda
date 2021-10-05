@@ -1,2 +1,10 @@
+.idea
+
 /target
 Cargo.lock
+
+/examples/web/target
+/examples/web/pkg
+/examples/web/.idea
+/examples/web/www/node_modules
+/examples/web/www/package-lock.json

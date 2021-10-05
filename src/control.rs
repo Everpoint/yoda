@@ -1,9 +1,7 @@
-use glium::glutin::event::{MouseButton, WindowEvent, MouseScrollDelta};
 use crate::map::Map;
 use crate::event::MapEvent;
-use glium::backend::glutin::glutin::event::ElementState;
-use glium::backend::glutin::glutin::dpi::PhysicalPosition;
 use crate::Point;
+use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
 
 #[derive(Debug, Default)]
 pub struct MouseState {
@@ -17,7 +15,7 @@ pub struct MouseState {
 pub struct ControlState {
     mouse_state: MouseState,
     pub map_size: [u32; 2],
-    pub last_zoom_time: std::time::SystemTime,
+    pub last_zoom_time: instant::Instant,
 }
 
 impl Default for ControlState {
@@ -25,7 +23,7 @@ impl Default for ControlState {
         Self {
             mouse_state: MouseState::default(),
             map_size: [0, 0],
-            last_zoom_time: std::time::SystemTime::now(),
+            last_zoom_time: instant::Instant::now(),
         }
     }
 }
@@ -107,13 +105,13 @@ impl<'a> MapControl<'a> {
     }
 
     fn wheel(&mut self, delta: MouseScrollDelta) {
-        if self.map.control_state().last_zoom_time.elapsed().unwrap().as_millis() < self.settings.zoom_delay as u128 {
+        if self.map.control_state().last_zoom_time.elapsed().as_millis() < self.settings.zoom_delay as u128 {
             return;
         }
 
         let dy = match delta {
             MouseScrollDelta::LineDelta(_, dy) => dy,
-            _ => 0.0,
+            MouseScrollDelta::PixelDelta(v) => v.y as f32,
         };
 
         const DELTA: f32 = 1.1;
@@ -128,6 +126,6 @@ impl<'a> MapControl<'a> {
         let delta = delta.powf(self.settings.mouse_wheel_speed);
         self.map.trigger(&MapEvent::Zoom {delta, cursor_position: self.map.control_state().mouse_state.cursor_position});
 
-        self.map.control_state_mut().last_zoom_time = std::time::SystemTime::now();
+        self.map.control_state_mut().last_zoom_time = instant::Instant::now();
     }
 }

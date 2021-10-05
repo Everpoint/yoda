@@ -6,12 +6,15 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-glium = "0.30.2"
 nalgebra = "0.29.0"
 num-traits = "0.2.14"
 notflat = {path = "../notflat"}
 lyon = "0.17.5"
+winit = "0.25.0"
+glow = "0.11.0"
+instant = "0.1.11"
 
 [dev-dependencies]
+glutin = "0.27.0"
 shapefile = "0.3.0"
 

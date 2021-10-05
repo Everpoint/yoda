@@ -3,7 +3,6 @@ use crate::control::{ControlState, MapControl, MapControlSettings};
 use crate::render_target::RenderTarget;
 use crate::event::MapEvent;
 use crate::Point;
-use glium::Surface;
 
 pub struct Map {
     layers: Vec<Box<dyn Layer>>,
@@ -23,7 +22,7 @@ impl Map {
     }
 
     pub fn draw(&mut self, target: &mut RenderTarget) {
-        let (x, y) = target.frame().get_dimensions();
+        let (x, y) = target.get_dimensions();
         self.position.set_screen_size(x, y);
 
         for layer in &mut self.layers {

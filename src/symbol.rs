@@ -1,5 +1,3 @@
-use glium::{Program, Display};
-
 mod circle;
 pub use circle::*;
 
@@ -8,11 +6,15 @@ pub use line::LineSymbol;
 
 mod polygon;
 pub use polygon::PolygonSymbol;
+use glow::{Context, Program};
 
 pub trait Symbol<G> {
-    type Vertex: glium::Vertex;
+    type Vertex;
 
-    fn compile(&mut self, display: &Display);
+    fn vertex_shader(&self) -> &str;
+    fn fragment_shader(&self) -> &str;
+
+    fn compile(&mut self, context: &Context);
     fn program(&self) -> &Program;
     fn convert(&self, geometry: &G) -> (Vec<Self::Vertex>, Option<Vec<u32>>);
 }

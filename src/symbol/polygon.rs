@@ -1,15 +1,14 @@
 use crate::{Color, Polyline, Point3, Polygon};
 use crate::symbol::Symbol;
-use glium::{Display, Program};
 use lyon::tessellation::geometry_builder::simple_builder;
 use lyon::tessellation::{VertexBuffers, StrokeVertexConstructor, FillTessellator, StrokeOptions, StrokeTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex};
 use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
 use lyon::tessellation::path::builder::{PathBuilder, Build};
 use lyon::math::point;
-use glium::draw_parameters::PolygonMode::Line;
+use glow::{Context, Program};
 
 pub struct PolygonSymbol {
-    pub color: Color,
+    pub fill_color: Color,
 
     pub program: Option<Program>,
 }
@@ -60,9 +59,18 @@ impl FillVertexConstructor<LineVertex> for VertexCtor {
 impl Symbol<Polygon> for PolygonSymbol {
     type Vertex = LineVertex;
 
-    fn compile(&mut self, display: &Display) {
+    fn vertex_shader(&self) -> &str {
+        todo!()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        todo!()
+    }
+
+    fn compile(&mut self, context: &Context) {
         if self.program.is_none() {
-            self.program = Some(glium::Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap());
+            todo!()
+            // self.program = Some(glium::Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap());
         }
     }
 
@@ -72,7 +80,7 @@ impl Symbol<Polygon> for PolygonSymbol {
 
     fn convert(&self, geometry: &Polygon) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
-        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.color});
+        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color });
         let mut tessellator = FillTessellator::new();
         let options = FillOptions::default().with_fill_rule(FillRule::EvenOdd);
         let mut builder = tessellator.builder(&options, &mut geometry_builder);
@@ -88,7 +96,8 @@ impl Symbol<Polygon> for PolygonSymbol {
         builder.build();
 
         let VertexBuffers {vertices, indices} = buffers;
-        (vertices, Some(indices))
+        // (vertices, Some(indices))
+        todo!()
     }
 }
 
@@ -98,4 +107,3 @@ pub struct LineVertex {
     color: Color,
 }
 
-implement_vertex!(LineVertex, position, color);

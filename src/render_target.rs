@@ -1,20 +1,20 @@
-use glium::{Display, Frame};
+use glow::Context;
 
 pub struct RenderTarget<'a> {
-    display: &'a Display,
-    frame: &'a mut Frame,
+    context: &'a Context,
+    size: (u32, u32),
 }
 
 impl<'a> RenderTarget<'a> {
-    pub fn new(display: &'a Display, frame: &'a mut Frame) -> Self {
-        Self {display, frame}
+    pub fn new(context: &'a Context, size: (u32, u32)) -> Self {
+        Self { context, size }
     }
 
-    pub fn display(&self) -> &Display {
-        self.display
+    pub fn context(&self) -> &Context {
+        self.context
     }
 
-    pub fn frame(&mut self) -> &mut Frame {
-        self.frame
+    pub fn get_dimensions(&self) -> (u32, u32) {
+        self.size
     }
 }
