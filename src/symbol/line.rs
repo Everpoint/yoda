@@ -6,6 +6,7 @@ use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
 use lyon::tessellation::path::builder::{PathBuilder, Build};
 use lyon::math::point;
 use glow::{Context, Program};
+use crate::gl::{Vertex, VertexAttribute, AttributeValueType};
 
 pub struct LineSymbol {
     pub width: f32,
@@ -14,12 +15,10 @@ pub struct LineSymbol {
     pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"
-#version 330
+const VERTEX_SHADER: &'static str = r#"#version 300 es
 
 layout (location = 0) in vec3 position;
-layout (location = 2) in vec4 color;
-layout (location = 3) in float size;
+layout (location = 1) in vec4 color;
 
 uniform mat4 transformation;
 uniform vec2 screen_size;
@@ -32,8 +31,9 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"
-#version 330
+const FRAGMENT_SHADER: &'static str = r#"#version 300 es
+
+precision mediump float;
 
 in vec4 frag_color;
 out vec4 FragColor;
@@ -61,22 +61,19 @@ impl Symbol<Polyline> for LineSymbol {
     type Vertex = LineVertex;
 
     fn vertex_shader(&self) -> &str {
-        todo!()
+        VERTEX_SHADER
     }
 
     fn fragment_shader(&self) -> &str {
-        todo!()
+        FRAGMENT_SHADER
     }
 
-    fn compile(&mut self, context: &Context) {
-        if self.program.is_none() {
-            todo!()
-            // self.program = Some(glium::Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap());
-        }
+    fn set_program(&mut self, program: Program) {
+        self.program = Some(program);
     }
 
-    fn program(&self) -> &Program {
-        self.program.as_ref().unwrap()
+    fn program(&self) -> Option<&Program> {
+        self.program.as_ref()
     }
 
     fn convert(&self, geometry: &Polyline) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
@@ -99,13 +96,21 @@ impl Symbol<Polyline> for LineSymbol {
         builder.build();
 
         let VertexBuffers {vertices, indices} = buffers;
-        // (vertices, Some(indices))
-        todo!()
+        (vertices, Some(indices))
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct LineVertex {
-    position: Point3,
-    color: Color,
+    pub position: Point3,
+    pub color: Color,
+}
+
+impl Vertex for LineVertex {
+    fn attributes() -> Vec<VertexAttribute> {
+        vec![
+            VertexAttribute {location: 0, size: 3, value_type: AttributeValueType::Float},
+            VertexAttribute {location: 1, size: 4, value_type: AttributeValueType::Float},
+        ]
+    }
 }
