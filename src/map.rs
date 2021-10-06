@@ -206,11 +206,11 @@ impl MapPosition {
         na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(1.0 / self.scale[(0, 0)], 1.0 / self.scale[(1, 1)], 1.0 / self.scale[(2, 2)]))
     }
 
-    fn center(&self) -> Point {
+    pub fn center(&self) -> Point {
         [-self.translate[(0, 3)], -self.translate[(1, 3)]]
     }
 
-    fn resolution(&self) -> f32 {
+    pub fn resolution(&self) -> f32 {
         1.0 / self.scale[(0, 0)]
     }
 

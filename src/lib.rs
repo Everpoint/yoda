@@ -5,6 +5,7 @@ pub mod render_target;
 pub mod symbol;
 pub mod event;
 pub mod gl;
+pub mod runtime;
 
 extern crate nalgebra as na;
 

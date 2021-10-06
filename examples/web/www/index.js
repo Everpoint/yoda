@@ -1,3 +1,3 @@
 import * as wasm from "web";
 
-wasm.greet();
+wasm.draw_map(document.getElementById("map"));
