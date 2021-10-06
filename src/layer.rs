@@ -43,48 +43,6 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
             let gl = target.context();
             self.buffer = Some(GlBuffer::create(gl, &vertices, indices));
         }
-
-            // unsafe {
-            //     let gl = target.context();
-            //     let vertex_array = gl.create_vertex_array().unwrap();
-            //     gl.bind_vertex_array(Some(vertex_array));
-            //
-            //     let vertex_size = std::mem::size_of::<S::Vertex>();
-            //     let vertex_buffer = gl.create_buffer().unwrap();
-            //     gl.bind_buffer(glow::ARRAY_BUFFER, Some(vertex_buffer));
-            //     gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, to_bytes(&vertices[0], vertex_size * vertices.len()), glow::STATIC_DRAW);
-            //
-            //     gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, vertex_size as i32, 0);
-            //     gl.enable_vertex_attrib_array(0);
-            //
-            //     gl.vertex_attrib_pointer_f32(1, 2, glow::FLOAT, false, vertex_size as i32, 3 * 4);
-            //     gl.enable_vertex_attrib_array(1);
-            //
-            //     gl.vertex_attrib_pointer_f32(2, 4, glow::FLOAT, false, vertex_size as i32, (3 + 2) * 4);
-            //     gl.enable_vertex_attrib_array(2);
-            //
-            //     gl.vertex_attrib_pointer_f32(3, 1, glow::FLOAT, false, vertex_size as i32, (3 + 2 + 4) * 4);
-            //     gl.enable_vertex_attrib_array(3);
-            //
-            //     let vertex_buffer = vertex_buffer;
-            //     let vertex_count = vertices.len() as u32;
-            //     //
-            //     // if indices.len() > 0 {
-            //     //     let index_buffer = gl.create_buffer().unwrap();
-            //     //     gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(index_buffer));
-            //     //     gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, &to_bytes(&indices[0], 4 * indices.len()), glow::STATIC_DRAW);
-            //     //
-            //     //     Some(index_buffer)
-            //     // }
-            //
-            //     gl.bind_buffer(glow::ARRAY_BUFFER, None);
-            //     gl.bind_vertex_array(None);
-            //
-            //     let vertex_array = vertex_array;
-            //
-            //     self.buffer = Some(GlBuffer {vertex_array, vertex_buffer, vertex_count, index_buffer: None});
-            // }
-        // }
     }
 }
 
