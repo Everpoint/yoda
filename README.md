@@ -1,4 +1,4 @@
-Yoda - is a general purpose cross-platform GIS map engine.
+Yoda is a general purpose cross-platform GIS map engine.
 
 It is in early development stage, thus lack of documentation. But you can run the
 examples and check out their source code:

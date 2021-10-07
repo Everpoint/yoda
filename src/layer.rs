@@ -1,3 +1,6 @@
+mod dynamic;
+pub use dynamic::DynamicLayer;
+
 use crate::render_target::RenderTarget;
 use crate::{Point, Point3};
 use crate::symbol::{CircleSymbol, CirclePointVertex, Symbol};

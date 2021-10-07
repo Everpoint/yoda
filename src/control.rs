@@ -1,14 +1,28 @@
 use crate::map::Map;
-use crate::event::MapEvent;
+use crate::event::{MapEvent, ClickEvent};
 use crate::Point;
 use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
 
 #[derive(Debug, Default)]
 pub struct MouseState {
     cursor_position: [i32; 2],
-    left_button_pressed: bool,
+    left_button_down_position: [i32; 2],
     right_button_pressed: bool,
     middle_button_pressed: bool,
+}
+
+impl MouseState {
+    fn capture_left_button_pressed(&mut self) {
+        self.left_button_down_position = self.cursor_position;
+    }
+
+    fn capture_left_button_released(&mut self) {
+        self.left_button_down_position = [i32::MIN, i32::MIN];
+    }
+
+    fn left_button_pressed(&self) -> bool {
+        self.left_button_down_position[0] != i32::MIN
+    }
 }
 
 #[derive(Debug)]
@@ -37,6 +51,7 @@ pub struct MapControl<'a> {
 pub struct MapControlSettings {
     mouse_wheel_speed: f32,
     zoom_delay: u32,
+    max_click_displacement: i32,
 }
 
 impl Default for MapControlSettings {
@@ -44,6 +59,7 @@ impl Default for MapControlSettings {
         Self {
             mouse_wheel_speed: 2.0,
             zoom_delay: 50,
+            max_click_displacement: 3,
         }
     }
 }
@@ -67,7 +83,7 @@ impl<'a> MapControl<'a> {
 
     fn mouse_pressed(&mut self, button: MouseButton) {
         match button {
-            MouseButton::Left => self.map.control_state_mut().mouse_state.left_button_pressed = true,
+            MouseButton::Left => self.map.control_state_mut().mouse_state.capture_left_button_pressed(),
             MouseButton::Right => self.map.control_state_mut().mouse_state.right_button_pressed = true,
             MouseButton::Middle => self.map.control_state_mut().mouse_state.middle_button_pressed = true,
             MouseButton::Other(_) => {}
@@ -76,7 +92,15 @@ impl<'a> MapControl<'a> {
 
     fn mouse_released(&mut self, button: MouseButton) {
         match button {
-            MouseButton::Left => self.map.control_state_mut().mouse_state.left_button_pressed = false,
+            MouseButton::Left => {
+                let mouse_state = &self.map.control_state().mouse_state;
+
+                if displacement(mouse_state.left_button_down_position, mouse_state.cursor_position) <= self.settings.max_click_displacement {
+                    self.map.trigger(&MapEvent::Click(ClickEvent {cursor_position: self.map.control_state().mouse_state.cursor_position}))
+                }
+
+                self.map.control_state_mut().mouse_state.capture_left_button_released();
+            },
             MouseButton::Right => self.map.control_state_mut().mouse_state.right_button_pressed = false,
             MouseButton::Middle => self.map.control_state_mut().mouse_state.middle_button_pressed = false,
             MouseButton::Other(_) => {}
@@ -85,14 +109,14 @@ impl<'a> MapControl<'a> {
 
     fn cursor_moved(&mut self, x: i32, y: i32) {
         let state = self.map.control_state();
-        if state.mouse_state.left_button_pressed
+        if state.mouse_state.left_button_pressed()
             || state.mouse_state.right_button_pressed
             || state.mouse_state.middle_button_pressed {
             let prev_position = state.mouse_state.cursor_position;
             let dx = x - prev_position[0];
             let dy = y - prev_position[1];
 
-            if state.mouse_state.left_button_pressed {
+            if state.mouse_state.left_button_pressed() {
                 self.map.trigger(&MapEvent::Drag {dx, dy: -dy});
             } else if state.mouse_state.right_button_pressed {
                 self.map.trigger(&MapEvent::RightButtonDrag {dx, dy: -dy, cursor_position: state.mouse_state.cursor_position});
@@ -128,4 +152,8 @@ impl<'a> MapControl<'a> {
 
         self.map.control_state_mut().last_zoom_time = instant::Instant::now();
     }
+}
+
+fn displacement(p1: [i32; 2], p2: [i32; 2]) -> i32 {
+    (p1[0] - p2[0]).abs() + (p1[1] - p2[1]).abs()
 }

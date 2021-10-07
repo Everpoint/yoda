@@ -1,14 +1,17 @@
 use crate::layer::Layer;
 use crate::control::{ControlState, MapControl, MapControlSettings};
 use crate::render_target::RenderTarget;
-use crate::event::MapEvent;
+use crate::event::{MapEvent, ClickEvent, HandlerStore, EventState};
 use crate::Point;
+use std::rc::{Weak, Rc};
+use std::cell::RefCell;
 
 pub struct Map {
-    layers: Vec<Box<dyn Layer>>,
+    layers: Vec<Rc<RefCell<dyn Layer>>>,
     position: MapPosition,
     animation: Option<MapAnimation>,
     control_state: ControlState,
+    handler_store: HandlerStore,
 }
 
 impl Map {
@@ -18,6 +21,7 @@ impl Map {
             position: MapPosition::default(),
             animation: None,
             control_state: ControlState::default(),
+            handler_store: HandlerStore::default(),
         }
     }
 
@@ -26,7 +30,7 @@ impl Map {
         self.position.set_screen_size(x, y);
 
         for layer in &mut self.layers {
-            layer.draw(target, &self.position);
+            layer.borrow_mut().draw(target, &self.position);
         }
     }
 
@@ -34,7 +38,7 @@ impl Map {
         todo!()
     }
 
-    pub fn add_layer(&mut self, layer: Box<dyn Layer>) {
+    pub fn add_layer(&mut self, layer: Rc<RefCell<dyn Layer>>) {
         self.layers.push(layer);
     }
 
@@ -72,6 +76,7 @@ impl Map {
 
     fn handle_event(&mut self, event: &MapEvent) {
         match event {
+            MapEvent::Click(e) => self.trigger_left_click(*e),
             MapEvent::Drag { dx, dy } => self.handle_drag(*dx, *dy),
             MapEvent::RightButtonDrag {dx, dy, cursor_position} => self.handle_right_button_drag(*dx, *dy, *cursor_position),
             MapEvent::MiddleButtonDrag {dx, dy} => self.handle_middle_button_drag(*dx, *dy),
@@ -117,6 +122,20 @@ impl Map {
 
     fn handle_zoom(&mut self, delta: f32, cursor_position: [i32; 2]) {
         self.position.zoom(delta, cursor_position);
+    }
+
+    pub fn on_left_click(&mut self, handler: impl Fn(ClickEvent, &mut Self) -> EventState + 'static) {
+        self.handler_store.left_click.push(Rc::new(handler));
+    }
+
+    fn trigger_left_click(&mut self, event: ClickEvent) {
+        for i in 0..self.handler_store.left_click.len() {
+            let handler = &self.handler_store.left_click[i];
+            let state = handler.clone()(event, self);
+            if state == EventState::Final {
+                break;
+            }
+        }
     }
 }
 
@@ -227,7 +246,7 @@ impl MapPosition {
         self.inverse_translation() * self.inverse_scale() * self.inverse_rotation() * self.half_screen_translation()
     }
 
-    fn get_map_position(&self, px_position: &[i32; 2]) -> Point {
+    pub fn get_map_position(&self, px_position: &[i32; 2]) -> Point {
         let point = na::Vector4::new(px_position[0] as f32, px_position[1] as f32, 0.0, 1.0);
         let transformed = self.inverse_screen_transformation() * point;
         [transformed[0], transformed[1]]
