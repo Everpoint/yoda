@@ -124,16 +124,6 @@ impl Map {
     fn handle_zoom(&mut self, delta: f32, cursor_position: [i32; 2]) {
         self.position.zoom(delta, cursor_position);
     }
-
-    fn trigger_left_click(&mut self, event: ClickEvent) {
-        for i in 0..self.handler_store.left_click.len() {
-            let handler = &self.handler_store.left_click[i];
-            let state = handler.clone()(event, self);
-            if state == EventState::Final {
-                break;
-            }
-        }
-    }
 }
 
 impl<E> EventListener<E> for Map

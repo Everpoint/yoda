@@ -33,31 +33,31 @@ pub enum EventState {
 
 #[derive(Default)]
 pub struct HandlerStore {
-    pub left_click: Vec<Rc<dyn Fn(ClickEvent, &Map) -> EventState>>,
-    pub double_click: Vec<Rc<dyn Fn(DoubleClickEvent, &Map) -> EventState>>,
+    pub left_click: Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>>,
+    pub double_click: Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>>,
 }
 
 pub trait TypedHandlerStore<E> {
-    fn get_store(&self) -> &Vec<Rc<dyn Fn(E, &Map) -> EventState>>;
-    fn get_store_mut(&mut self) -> &mut Vec<Rc<dyn Fn(E, &Map) -> EventState>>;
+    fn get_store(&self) -> &Vec<Box<dyn Fn(E, &Map) -> EventState>>;
+    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(E, &Map) -> EventState>>;
 }
 
 impl TypedHandlerStore<ClickEvent> for HandlerStore {
-    fn get_store(&self) -> &Vec<Rc<dyn Fn(ClickEvent, &Map) -> EventState>> {
+    fn get_store(&self) -> &Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>> {
         &self.left_click
     }
 
-    fn get_store_mut(&mut self) -> &mut Vec<Rc<dyn Fn(ClickEvent, &Map) -> EventState>> {
+    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>> {
         &mut self.left_click
     }
 }
 
 impl TypedHandlerStore<DoubleClickEvent> for HandlerStore {
-    fn get_store(&self) -> &Vec<Rc<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
+    fn get_store(&self) -> &Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
         &self.double_click
     }
 
-    fn get_store_mut(&mut self) -> &mut Vec<Rc<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
+    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
         &mut self.double_click
     }
 }
@@ -69,8 +69,8 @@ pub trait EventListener<E>
     fn handler_store(&self) -> &HandlerStore;
     fn handler_store_mut(&mut self) -> &mut HandlerStore;
 
-    fn on(&mut self, handler: impl Fn(E, &Self) -> EventState + 'static + for<'r> Fn(E, &'r Map) -> EventState) {
-        TypedHandlerStore::<E>::get_store_mut(self.handler_store_mut()).push(Rc::new(handler));
+    fn on(& mut self, handler: Box<dyn Fn(E, &Map) -> EventState>) {
+        TypedHandlerStore::<E>::get_store_mut(self.handler_store_mut()).push(handler);
     }
 
     fn trigger_event(&self, event: E, map: &Map) {
