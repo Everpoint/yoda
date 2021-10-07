@@ -3,7 +3,7 @@ use yoda::symbol::CircleSymbol;
 use yoda::runtime::native::NativeRuntime;
 use yoda::layer::DynamicLayer;
 use std::rc::Rc;
-use yoda::map::Map;
+use yoda::map::{Map, EventListener};
 use std::cell::RefCell;
 
 fn main() {
@@ -15,7 +15,7 @@ fn main() {
     let mut map = runtime.map_mut();
     map.add_layer(layer.clone());
 
-    map.on_left_click(move |e, map| {
+    map.on(move |e: ClickEvent, map| {
         let map_position = map.position().get_map_position(&e.cursor_position);
         layer.borrow_mut().add([map_position[0], map_position[1], 0.0]);
 

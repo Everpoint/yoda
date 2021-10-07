@@ -1,7 +1,7 @@
 use crate::layer::Layer;
 use crate::control::{ControlState, MapControl, MapControlSettings};
 use crate::render_target::RenderTarget;
-use crate::event::{MapEvent, ClickEvent, HandlerStore, EventState};
+use crate::event::{MapEvent, ClickEvent, HandlerStore, EventState, TypedHandlerStore, EventListener};
 use crate::Point;
 use std::rc::{Weak, Rc};
 use std::cell::RefCell;
@@ -76,7 +76,8 @@ impl Map {
 
     fn handle_event(&mut self, event: &MapEvent) {
         match event {
-            MapEvent::Click(e) => self.trigger_left_click(*e),
+            MapEvent::Click(e) => self.trigger_event(*e, &self),
+            MapEvent::DoubleClick(e) => {},
             MapEvent::Drag { dx, dy } => self.handle_drag(*dx, *dy),
             MapEvent::RightButtonDrag {dx, dy, cursor_position} => self.handle_right_button_drag(*dx, *dy, *cursor_position),
             MapEvent::MiddleButtonDrag {dx, dy} => self.handle_middle_button_drag(*dx, *dy),
@@ -124,10 +125,6 @@ impl Map {
         self.position.zoom(delta, cursor_position);
     }
 
-    pub fn on_left_click(&mut self, handler: impl Fn(ClickEvent, &mut Self) -> EventState + 'static) {
-        self.handler_store.left_click.push(Rc::new(handler));
-    }
-
     fn trigger_left_click(&mut self, event: ClickEvent) {
         for i in 0..self.handler_store.left_click.len() {
             let handler = &self.handler_store.left_click[i];
@@ -136,6 +133,19 @@ impl Map {
                 break;
             }
         }
+    }
+}
+
+impl<E> EventListener<E> for Map
+    where E: Copy,
+          HandlerStore: TypedHandlerStore<E>
+{
+    fn handler_store(&self) -> &HandlerStore {
+        &self.handler_store
+    }
+
+    fn handler_store_mut(&mut self) -> &mut HandlerStore {
+        &mut self.handler_store
     }
 }
 
