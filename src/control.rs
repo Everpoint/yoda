@@ -2,12 +2,23 @@ use crate::map::Map;
 use crate::event::{MapEvent, ClickEvent, HandlerStore, TypedHandlerStore, EventListener};
 use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct MouseState {
     cursor_position: [i32; 2],
     left_button_down_position: [i32; 2],
     right_button_pressed: bool,
     middle_button_pressed: bool,
+}
+
+impl Default for MouseState {
+    fn default() -> Self {
+        Self {
+            cursor_position: [0, 0],
+            left_button_down_position: [i32::MIN, i32::MIN],
+            right_button_pressed: false,
+            middle_button_pressed: false,
+        }
+    }
 }
 
 impl MouseState {

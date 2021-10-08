@@ -7,6 +7,8 @@ use glutin::window::Window;
 use glutin::{ContextWrapper, PossiblyCurrent};
 use glow::HasContext;
 use yoda::runtime::native::NativeRuntime;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 fn main() {
     let shape_points = shapefile::reader::ShapeReader::from_path("./examples/data/points_wm.shp").unwrap().read().unwrap();
@@ -51,7 +53,7 @@ fn main() {
     map.set_center((bbox[2] + bbox[0]) / 2.0, (bbox[3] + bbox[1]) / 2.0);
     map.set_resolution((bbox[2] - bbox[0]) / 800.0);
 
-    map.add_layer(Box::new(layer));
+    map.add_layer(Rc::new(RefCell::new(layer)));
 
     runtime.run();
 }

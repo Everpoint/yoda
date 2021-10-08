@@ -7,6 +7,8 @@ use glutin::window::Window;
 use glutin::{ContextWrapper, PossiblyCurrent};
 use glow::HasContext;
 use yoda::runtime::native::NativeRuntime;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 fn main() {
     let line_symbol = LineSymbol {width: 3.0, color: [0.5, 0.2, 0.0, 1.0], program: None};
@@ -36,9 +38,9 @@ fn main() {
     let mut runtime = NativeRuntime::new(&|b| b.with_title("Simple yoda map example"));
 
     let mut map = runtime.map_mut();
-    map.add_layer(Box::new(line_layer));
-    map.add_layer(Box::new(point_layer));
-    map.add_layer(Box::new(polygon_layer));
+    map.add_layer(Rc::new(RefCell::new(line_layer)));
+    map.add_layer(Rc::new(RefCell::new(point_layer)));
+    map.add_layer(Rc::new(RefCell::new(polygon_layer)));
 
     runtime.run();
 }
