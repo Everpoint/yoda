@@ -55,11 +55,11 @@ impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
         let t = position.matrix();
         let (width, height) = target.get_dimensions();
         let t = [
-                    t[(0, 0)], t[(0, 1)], t[(0, 2)], t[(0, 3)],
-                    t[(1, 0)], t[(1, 1)], t[(1, 2)], t[(1, 3)],
-                    t[(2, 0)], t[(2, 1)], t[(2, 2)], t[(2, 3)],
-                    t[(3, 0)], t[(3, 1)], t[(3, 2)], t[(3, 3)],
-                ];
+            t[(0, 0)], t[(0, 1)], t[(0, 2)], t[(0, 3)],
+            t[(1, 0)], t[(1, 1)], t[(1, 2)], t[(1, 3)],
+            t[(2, 0)], t[(2, 1)], t[(2, 2)], t[(2, 3)],
+            t[(3, 0)], t[(3, 1)], t[(3, 2)], t[(3, 3)],
+        ];
 
         unsafe {
             let gl = target.context();
