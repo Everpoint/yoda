@@ -1,6 +1,7 @@
 use crate::map::Map;
 use std::rc::{Weak, Rc};
 use std::cell::RefCell;
+use winit::event::MouseButton;
 
 pub enum MapEvent {
     Click(ClickEvent),
@@ -11,18 +12,29 @@ pub enum MapEvent {
     Zoom {delta: f32, cursor_position: [i32; 2]},
 }
 
-pub trait Event {}
-
 #[derive(Debug, Clone, Copy)]
 pub struct ClickEvent {
     pub cursor_position: [i32; 2],
+    pub button: MouseButton,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct DoubleClickEvent {
 }
 
-impl Event for ClickEvent {}
+#[derive(Debug, Clone, Copy)]
+pub struct DragEvent {
+    pub dx: i32,
+    pub dy: i32,
+    pub button: MouseButton,
+    pub curr_cursor_position: [i32; 2],
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ZoomEvent {
+    pub delta: f32,
+    pub cursor_position: [i32; 2],
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EventState {
@@ -35,6 +47,8 @@ pub struct HandlerStore {
     next_id: usize,
     pub left_click: Vec<(usize, Rc<dyn Fn(ClickEvent, &mut Map) -> EventState>)>,
     pub double_click: Vec<(usize, Rc<dyn Fn(DoubleClickEvent, &mut Map) -> EventState>)>,
+    pub drag: Vec<(usize, Rc<dyn Fn(DragEvent, &mut Map) -> EventState>)>,
+    pub zoom: Vec<(usize, Rc<dyn Fn(ZoomEvent, &mut Map) -> EventState>)>,
 }
 
 impl HandlerStore {
@@ -83,20 +97,40 @@ impl TypedHandlerStore<DoubleClickEvent> for HandlerStore {
     }
 }
 
+impl TypedHandlerStore<DragEvent> for HandlerStore {
+    fn get_store(&self) -> &Vec<(usize, Rc<dyn Fn(DragEvent, &mut Map) -> EventState>)> {
+        &self.drag
+    }
+
+    fn get_store_mut(&mut self) -> &mut Vec<(usize, Rc<dyn Fn(DragEvent, &mut Map) -> EventState>)> {
+        &mut self.drag
+    }
+}
+
+impl TypedHandlerStore<ZoomEvent> for HandlerStore {
+    fn get_store(&self) -> &Vec<(usize, Rc<dyn Fn(ZoomEvent, &mut Map) -> EventState>)> {
+        &self.zoom
+    }
+
+    fn get_store_mut(&mut self) -> &mut Vec<(usize, Rc<dyn Fn(ZoomEvent, &mut Map) -> EventState>)> {
+        &mut self.zoom
+    }
+}
+
 pub trait EventListener<E>
     where E: Copy,
           HandlerStore: TypedHandlerStore<E>
 {
     fn handler_store(&self) -> Weak<RefCell<HandlerStore>>;
 
-    fn on(&mut self, handler: Rc<dyn Fn(E, &mut Map) -> EventState>) -> usize {
+    fn on(&self, handler: Rc<dyn Fn(E, &mut Map) -> EventState>) -> usize {
         let store = self.handler_store().upgrade().unwrap();
         let id = store.borrow_mut().next_id();
         TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut()).push((id, handler));
         id
     }
 
-    fn off(&mut self, handler_id: usize) {
+    fn off(&self, handler_id: usize) {
         let store = self.handler_store().upgrade().unwrap();
         let position = TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut()).iter().position(|(id, _)| *id == handler_id);
         if let Some(index) = position {

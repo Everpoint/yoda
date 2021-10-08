@@ -4,6 +4,7 @@ use yoda::runtime::native::NativeRuntime;
 use yoda::layer::DynamicLayer;
 use std::rc::Rc;
 use std::cell::RefCell;
+use winit::event::MouseButton;
 
 fn main() {
     let mut runtime = NativeRuntime::new(&|b| b.with_title("Simple yoda map example"));
@@ -18,6 +19,10 @@ fn main() {
 
     let layer_copy = layer.clone();
     map.on(Rc::new(move |e: ClickEvent, map| {
+        if e.button != MouseButton::Left {
+            return EventState::Continue;
+        }
+
         let map_position = map.position().get_map_position(&e.cursor_position);
         layer_copy.borrow_mut().add([map_position[0], map_position[1], 0.0]);
 
