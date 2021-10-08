@@ -19,7 +19,7 @@ impl<G, S: Symbol<G>> DynamicLayer<G, S> {
         let mut vertices = vec![];
         let mut indices = vec![];
         for p in &self.features {
-            let (mut geom_vertices, mut geom_indexes) = self.symbol.convert(&p);
+            let (mut geom_vertices, geom_indexes) = self.symbol.convert(&p);
             vertices.append(&mut geom_vertices);
             if let Some(mut i) = geom_indexes {
                 indices.append(&mut i);

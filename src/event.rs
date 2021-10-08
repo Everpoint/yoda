@@ -1,7 +1,7 @@
-use crate::Point;
 use crate::map::Map;
-use std::rc::{Weak, Rc};
+use std::rc::Weak;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 pub enum MapEvent {
     Click(ClickEvent),
@@ -33,31 +33,51 @@ pub enum EventState {
 
 #[derive(Default)]
 pub struct HandlerStore {
-    pub left_click: Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>>,
-    pub double_click: Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>>,
+    next_id: usize,
+    pub left_click: HashMap<usize, Box<dyn Fn(ClickEvent, &mut Map) -> EventState>>,
+    pub double_click: HashMap<usize, Box<dyn Fn(DoubleClickEvent, &mut Map) -> EventState>>,
 }
 
-pub trait TypedHandlerStore<E> {
-    fn get_store(&self) -> &Vec<Box<dyn Fn(E, &Map) -> EventState>>;
-    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(E, &Map) -> EventState>>;
+impl HandlerStore {
+    fn next_id(&mut self) -> usize {
+        self.next_id += 1;
+        self.next_id
+    }
+}
+
+pub trait TypedHandlerStore<E: Copy> {
+    fn get_store(&self) -> &HashMap<usize, Box<dyn Fn(E, &mut Map) -> EventState>>;
+    fn get_store_mut(&mut self) -> &mut HashMap<usize, Box<dyn Fn(E, &mut Map) -> EventState>>;
+
+    fn trigger_event(&self, event: E, map: &mut Map) {
+        let store = self.get_store();
+
+        for (_, handler) in store {
+            // let handler = &store[i];
+            let state = handler.clone()(event, map);
+            if state == EventState::Final {
+                break;
+            }
+        }
+    }
 }
 
 impl TypedHandlerStore<ClickEvent> for HandlerStore {
-    fn get_store(&self) -> &Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>> {
+    fn get_store(&self) -> &HashMap<usize, Box<dyn Fn(ClickEvent, &mut Map) -> EventState>> {
         &self.left_click
     }
 
-    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(ClickEvent, &Map) -> EventState>> {
+    fn get_store_mut(&mut self) -> &mut HashMap<usize, Box<dyn Fn(ClickEvent, &mut Map) -> EventState>> {
         &mut self.left_click
     }
 }
 
 impl TypedHandlerStore<DoubleClickEvent> for HandlerStore {
-    fn get_store(&self) -> &Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
+    fn get_store(&self) -> &HashMap<usize, Box<dyn Fn(DoubleClickEvent, &mut Map) -> EventState>> {
         &self.double_click
     }
 
-    fn get_store_mut(&mut self) -> &mut Vec<Box<dyn Fn(DoubleClickEvent, &Map) -> EventState>> {
+    fn get_store_mut(&mut self) -> &mut HashMap<usize, Box<dyn Fn(DoubleClickEvent, &mut Map) -> EventState>> {
         &mut self.double_click
     }
 }
@@ -66,22 +86,16 @@ pub trait EventListener<E>
     where E: Copy,
           HandlerStore: TypedHandlerStore<E>
 {
-    fn handler_store(&self) -> &HandlerStore;
-    fn handler_store_mut(&mut self) -> &mut HandlerStore;
+    fn handler_store(&self) -> Weak<RefCell<HandlerStore>>;
 
-    fn on(& mut self, handler: Box<dyn Fn(E, &Map) -> EventState>) {
-        TypedHandlerStore::<E>::get_store_mut(self.handler_store_mut()).push(handler);
+    fn on(&mut self, handler: Box<dyn Fn(E, &mut Map) -> EventState>) -> usize {
+        let store = self.handler_store().upgrade().unwrap();
+        let id = store.borrow_mut().next_id();
+        TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut()).insert(id, handler);
+        id
     }
 
-    fn trigger_event(&self, event: E, map: &Map) {
-        let store = TypedHandlerStore::<E>::get_store(self.handler_store());
-
-        for i in 0..store.len() {
-            let handler = &store[i];
-            let state = handler.clone()(event, map);
-            if state == EventState::Final {
-                break;
-            }
-        }
+    fn off(&mut self, handler_id: usize) {
+        TypedHandlerStore::<E>::get_store_mut(&mut *self.handler_store().upgrade().unwrap().borrow_mut()).remove(&handler_id);
     }
 }

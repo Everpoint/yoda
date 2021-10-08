@@ -1,9 +1,8 @@
-use yoda::event::{MapEvent, ClickEvent, EventState, EventListener};
+use yoda::event::{ClickEvent, EventState, EventListener};
 use yoda::symbol::CircleSymbol;
 use yoda::runtime::native::NativeRuntime;
 use yoda::layer::DynamicLayer;
 use std::rc::Rc;
-use yoda::map::Map;
 use std::cell::RefCell;
 
 fn main() {
@@ -27,12 +26,16 @@ fn main() {
     }));
 
     let layer_copy = layer.clone();
-    let handler_id = map.on(Box::new(move |e: ClickEvent, map| {
+    let mut handler_id = 0;
+    handler_id = map.on(Box::new(move |e: ClickEvent, map| {
         let map_position = map.position().get_map_position(&e.cursor_position);
         layer_copy.borrow_mut().add([map_position[0] + 100., map_position[1], 0.0]);
 
         *counter.borrow_mut() += 1;
 
+        if *counter.borrow() == 5 {
+            EventListener::<ClickEvent>::off(map, handler_id);
+        }
         // no more handlers will be called after this
         EventState::Final
     }));

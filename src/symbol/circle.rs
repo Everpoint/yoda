@@ -1,7 +1,6 @@
 use crate::{Color, Point, Point3};
 use crate::symbol::Symbol;
-use glow::{Context, HasContext, Program};
-use std::hash::Hash;
+use glow::Program;
 use crate::gl::{Vertex, VertexAttribute, AttributeValueType};
 
 pub struct CircleSymbol {
@@ -62,11 +61,11 @@ impl Symbol<Point3> for CircleSymbol {
 
     fn convert(&self, point: &Point3) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
         let mut result = vec![];
-        const segments: usize = 16;
-        for i in 0..segments {
+        const SEGMENTS: usize = 16;
+        for i in 0..SEGMENTS {
             result.push(CirclePointVertex {position: point.clone(), direction: [0.0, 0.0], size: self.size, color: self.color});
 
-            let from = (i as f32) / (segments as f32);
+            let from = (i as f32) / (SEGMENTS as f32);
 
             let angle = std::f32::consts::PI * from * 2.0;
 
@@ -75,7 +74,7 @@ impl Symbol<Point3> for CircleSymbol {
 
             result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color});
 
-            let to = (i as f32 + 1.0) / (segments as f32);
+            let to = (i as f32 + 1.0) / (SEGMENTS as f32);
             let angle = std::f32::consts::PI * to * 2.0;
 
             let dx = angle.cos();
@@ -88,6 +87,7 @@ impl Symbol<Point3> for CircleSymbol {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub struct CirclePointVertex {
     position: Point3,

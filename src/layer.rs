@@ -2,10 +2,9 @@ mod dynamic;
 pub use dynamic::DynamicLayer;
 
 use crate::render_target::RenderTarget;
-use crate::{Point, Point3};
-use crate::symbol::{CircleSymbol, CirclePointVertex, Symbol};
+use crate::symbol::{Symbol};
 use crate::map::MapPosition;
-use glow::{HasContext, Buffer, VertexArray, Context};
+use glow::{HasContext, Context};
 use crate::gl::GlBuffer;
 
 pub trait Layer {
@@ -35,7 +34,7 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
             let mut vertices = vec![];
             let mut indices = vec![];
             for p in &self.features {
-                let (mut geom_vertices, mut geom_indexes) = self.symbol.convert(&p);
+                let (mut geom_vertices, geom_indexes) = self.symbol.convert(&p);
                 vertices.append(&mut geom_vertices);
                 if let Some(mut i) = geom_indexes {
                     indices.append(&mut i);
@@ -84,11 +83,4 @@ impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
             gl.bind_vertex_array(None);
         }
     }
-}
-
-unsafe fn to_bytes<T>(p: &T, size: usize) -> &[u8] {
-    std::slice::from_raw_parts(
-        (p as *const T) as *const u8,
-        size,
-    )
 }

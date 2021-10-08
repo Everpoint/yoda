@@ -1,7 +1,7 @@
 use crate::layer::Layer;
 use crate::control::{ControlState, MapControl, MapControlSettings};
 use crate::render_target::RenderTarget;
-use crate::event::{MapEvent, ClickEvent, HandlerStore, EventState, TypedHandlerStore, EventListener};
+use crate::event::{MapEvent, HandlerStore, TypedHandlerStore, EventListener};
 use crate::Point;
 use std::rc::{Weak, Rc};
 use std::cell::RefCell;
@@ -11,7 +11,7 @@ pub struct Map {
     position: MapPosition,
     animation: Option<MapAnimation>,
     control_state: ControlState,
-    handler_store: HandlerStore,
+    handler_store: Rc<RefCell<HandlerStore>>,
 }
 
 impl Map {
@@ -21,7 +21,7 @@ impl Map {
             position: MapPosition::default(),
             animation: None,
             control_state: ControlState::default(),
-            handler_store: HandlerStore::default(),
+            handler_store: Rc::new(RefCell::new(HandlerStore::default())),
         }
     }
 
@@ -76,7 +76,7 @@ impl Map {
 
     fn handle_event(&mut self, event: &MapEvent) {
         match event {
-            MapEvent::Click(e) => self.trigger_event(*e, &self),
+            MapEvent::Click(e) => {},
             MapEvent::DoubleClick(e) => {},
             MapEvent::Drag { dx, dy } => self.handle_drag(*dx, *dy),
             MapEvent::RightButtonDrag {dx, dy, cursor_position} => self.handle_right_button_drag(*dx, *dy, *cursor_position),
@@ -130,12 +130,8 @@ impl<E> EventListener<E> for Map
     where E: Copy,
           HandlerStore: TypedHandlerStore<E>
 {
-    fn handler_store(&self) -> &HandlerStore {
-        &self.handler_store
-    }
-
-    fn handler_store_mut(&mut self) -> &mut HandlerStore {
-        &mut self.handler_store
+    fn handler_store(&self) -> Weak<RefCell<HandlerStore>> {
+        Rc::downgrade(&self.handler_store)
     }
 }
 

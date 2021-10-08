@@ -1,6 +1,5 @@
 use crate::map::Map;
-use crate::event::{MapEvent, ClickEvent};
-use crate::Point;
+use crate::event::{MapEvent, ClickEvent, HandlerStore, TypedHandlerStore, EventListener};
 use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
 
 #[derive(Debug, Default)]
@@ -96,7 +95,7 @@ impl<'a> MapControl<'a> {
                 let mouse_state = &self.map.control_state().mouse_state;
 
                 if displacement(mouse_state.left_button_down_position, mouse_state.cursor_position) <= self.settings.max_click_displacement {
-                    self.map.trigger(&MapEvent::Click(ClickEvent {cursor_position: self.map.control_state().mouse_state.cursor_position}))
+                    self.trigger(ClickEvent {cursor_position: self.map.control_state().mouse_state.cursor_position});
                 }
 
                 self.map.control_state_mut().mouse_state.capture_left_button_released();
@@ -105,6 +104,14 @@ impl<'a> MapControl<'a> {
             MouseButton::Middle => self.map.control_state_mut().mouse_state.middle_button_pressed = false,
             MouseButton::Other(_) => {}
         }
+    }
+
+    fn trigger<E>(&mut self, event: E)
+        where E: Copy,
+        HandlerStore: TypedHandlerStore<E>
+    {
+        let store = if let Some(s) = self.map.handler_store().upgrade() { s } else { return; };
+        TypedHandlerStore::trigger_event(&*store.borrow(), event, &mut self.map);
     }
 
     fn cursor_moved(&mut self, x: i32, y: i32) {

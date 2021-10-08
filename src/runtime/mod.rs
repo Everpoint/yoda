@@ -1,7 +1,5 @@
-use winit::event_loop::EventLoop;
 use crate::map::Map;
 use glow::{Context, HasContext};
-use winit::window::Window;
 use crate::render_target::RenderTarget;
 
 #[cfg(not(target_arch = "wasm32"))]

@@ -1,11 +1,10 @@
-use crate::{Color, Polyline, Point3, Polygon};
+use crate::{Color, Polygon};
 use crate::symbol::Symbol;
-use lyon::tessellation::geometry_builder::simple_builder;
-use lyon::tessellation::{VertexBuffers, StrokeVertexConstructor, FillTessellator, StrokeOptions, StrokeTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex};
-use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
-use lyon::tessellation::path::builder::{PathBuilder, Build};
+use lyon::tessellation::{VertexBuffers, FillTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex};
+use lyon::lyon_tessellation::BuffersBuilder;
+use lyon::tessellation::path::builder::PathBuilder;
 use lyon::math::point;
-use glow::{Context, Program};
+use glow::Program;
 use crate::symbol::line::LineVertex;
 
 pub struct PolygonSymbol {
@@ -90,7 +89,7 @@ impl Symbol<Polygon> for PolygonSymbol {
             builder.end(true);
         }
 
-        builder.build();
+        builder.build().unwrap();
 
         let VertexBuffers {vertices, indices} = buffers;
         (vertices, Some(indices))

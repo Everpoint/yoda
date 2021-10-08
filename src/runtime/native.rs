@@ -2,8 +2,6 @@ use crate::map::Map;
 use glow::{Context, HasContext};
 use glutin::{ContextWrapper, PossiblyCurrent};
 use glutin::window::Window;
-use winit::event_loop::ControlFlow;
-use crate::render_target::RenderTarget;
 
 pub struct NativeRuntime {
     map: Map,
@@ -54,9 +52,7 @@ impl NativeRuntime {
             let window_size = window.window().inner_size();
             super::event_loop_cycle(event, control_flow, &mut map, &gl, window_size.width, window_size.height);
 
-            unsafe {
-                window.swap_buffers();
-            }
+            window.swap_buffers().unwrap();
         });
     }
 }
