@@ -9,8 +9,7 @@ pub struct CircleSymbol {
     pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"#version 300 es
-
+const VERTEX_SHADER: &'static str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 direction;
 layout (location = 2) in vec4 color;
@@ -28,8 +27,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"#version 300 es
-
+const FRAGMENT_SHADER: &'static str = r#"
 precision mediump float;
 
 in vec4 frag_color ;
@@ -51,12 +49,12 @@ impl Symbol<Point3> for CircleSymbol {
         FRAGMENT_SHADER
     }
 
-    fn program(&self) -> Option<&Program> {
-        self.program.as_ref()
-    }
-
     fn set_program(&mut self, program: Program) {
         self.program = Some(program);
+    }
+
+    fn program(&self) -> Option<&Program> {
+        self.program.as_ref()
     }
 
     fn convert(&self, point: &Point3) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {

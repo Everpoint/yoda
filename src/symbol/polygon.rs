@@ -13,8 +13,7 @@ pub struct PolygonSymbol {
     pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"#version 300 es
-
+const VERTEX_SHADER: &'static str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
 
@@ -29,8 +28,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"#version 300 es
-
+const FRAGMENT_SHADER: &'static str = r#"
 precision mediump float;
 
 in vec4 frag_color;

@@ -11,6 +11,9 @@ use winit::event_loop::ControlFlow;
 use winit::dpi::{Size, PhysicalSize};
 use winit::dpi::Size::Physical;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 #[wasm_bindgen]
 pub fn draw_map(canvas: web_sys::HtmlCanvasElement) {
     console_error_panic_hook::set_once();
@@ -41,9 +44,9 @@ pub fn draw_map(canvas: web_sys::HtmlCanvasElement) {
     let mut runtime = yoda::runtime::wasm::WasmRuntime::new(canvas);
     let map = runtime.map_mut();
 
-    map.add_layer(Box::new(line_layer));
-    map.add_layer(Box::new(layer));
-    map.add_layer(Box::new(polygon_layer));
+    map.add_layer(Rc::new(RefCell::new(line_layer)));
+    map.add_layer(Rc::new(RefCell::new(layer)));
+    map.add_layer(Rc::new(RefCell::new(polygon_layer)));
 
     runtime.run();
 }

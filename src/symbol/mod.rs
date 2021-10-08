@@ -10,6 +10,12 @@ pub use polygon::PolygonSymbol;
 use glow::{Context, Program, HasContext};
 use crate::gl::Vertex;
 
+#[cfg(not(target_arch = "wasm32"))]
+const GL_VERSION: &str = r#"#version 330"#;
+
+#[cfg(target_arch = "wasm32")]
+const GL_VERSION: &str = r#"#version 300 es"#;
+
 pub trait Symbol<G> {
     type Vertex: Vertex;
 
@@ -22,7 +28,7 @@ pub trait Symbol<G> {
                 let program = gl.create_program().unwrap();
 
                 let vertex_shader = gl.create_shader(glow::VERTEX_SHADER).unwrap();
-                gl.shader_source(vertex_shader, self.vertex_shader());
+                gl.shader_source(vertex_shader, &get_vertex_source(self.vertex_shader()));
                 gl.compile_shader(vertex_shader);
                 if !gl.get_shader_compile_status(vertex_shader) {
                     panic!("Failed to compile vertex shader: {}", gl.get_shader_info_log(vertex_shader));
@@ -31,7 +37,7 @@ pub trait Symbol<G> {
                 gl.attach_shader(program, vertex_shader);
 
                 let fragment_shader = gl.create_shader(glow::FRAGMENT_SHADER).unwrap();
-                gl.shader_source(fragment_shader, self.fragment_shader());
+                gl.shader_source(fragment_shader, &get_vertex_source(self.fragment_shader()));
                 gl.compile_shader(fragment_shader);
                 if !gl.get_shader_compile_status(fragment_shader) {
                     panic!("Failed to compile fragment shader: {}", gl.get_shader_info_log(fragment_shader));
@@ -61,4 +67,8 @@ pub trait Symbol<G> {
     }
     fn program(&self) -> Option<&Program>;
     fn convert(&self, geometry: &G) -> (Vec<Self::Vertex>, Option<Vec<u32>>);
+}
+
+fn get_vertex_source(source: &str) -> String {
+    format!("{}\n{}", GL_VERSION, source)
 }

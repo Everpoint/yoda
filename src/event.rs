@@ -1,7 +1,6 @@
 use crate::map::Map;
 use std::rc::{Weak, Rc};
 use std::cell::RefCell;
-use std::collections::HashMap;
 
 pub enum MapEvent {
     Click(ClickEvent),
