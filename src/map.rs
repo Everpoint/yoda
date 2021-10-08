@@ -1,7 +1,7 @@
 use crate::layer::Layer;
 use crate::control::{ControlState, MapEventDispatcher, MapControlSettings};
 use crate::render_target::RenderTarget;
-use crate::event::{MapEvent, HandlerStore, TypedHandlerStore, EventListener};
+use crate::event::{HandlerStore, TypedHandlerStore, EventListener};
 use crate::Point;
 use std::rc::{Weak, Rc};
 use std::cell::RefCell;
