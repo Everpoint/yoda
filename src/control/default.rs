@@ -76,7 +76,7 @@ fn handle_middle_button_drag(_: i32, dy: i32, map: &mut Map) -> EventState {
 }
 
 fn handle_right_button_drag(dx: i32, dy: i32, map: &mut Map, cursor_position: [i32; 2]) -> EventState {
-    let mut position = map.position_mut();
+    let position = map.position_mut();
     let center = position.center();
     let position_on_map = position.get_map_position(&cursor_position);
     let v1 = [center[0] - position_on_map[0], center[1] - position_on_map[1]];

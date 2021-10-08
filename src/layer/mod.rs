@@ -1,11 +1,9 @@
-mod dynamic;
-pub use dynamic::DynamicLayer;
-
 use crate::render_target::RenderTarget;
 use crate::symbol::{Symbol};
 use crate::map::MapPosition;
 use glow::{HasContext, Context};
 use crate::gl::GlBuffer;
+use std::rc::Rc;
 
 pub trait Layer {
     fn draw(&mut self, target: &RenderTarget, position: &MapPosition);
@@ -14,22 +12,48 @@ pub trait Layer {
 pub struct StaticLayer<G, S: Symbol<G>> {
     features: Vec<G>,
     symbol: S,
+    context: Option<Rc<Context>>,
     buffer: Option<GlBuffer>,
 }
 
 impl<G, S: Symbol<G>> StaticLayer<G, S> {
     pub fn new(symbol: S, features: Vec<G>) -> Self {
-        Self {features, symbol, buffer: None}
+        Self {features, symbol, context: None, buffer: None}
     }
 
-    pub fn clean(&mut self, gl: &Context) {
-        // buffers must be deleted
-        todo!()
-    }
-}
+    pub fn clean(&mut self) {
+        if let Some(gl) = &self.context {
+            let buffer = self.buffer.as_ref().unwrap();
+            unsafe {
+                gl.delete_buffer(buffer.vertex_buffer);
+                if let Some(index_buffer) = buffer.index_buffer {
+                    gl.delete_buffer(index_buffer);
+                }
 
-impl<G, S: Symbol<G>> StaticLayer<G, S> {
-    fn prepare_buffer(&mut self, target: &RenderTarget) {
+                gl.delete_vertex_array(buffer.vertex_array);
+            }
+
+            self.buffer = None;
+            self.context = None;
+        }
+    }
+
+    fn set_context(&mut self, gl: Rc<Context>) {
+        if let Some(context) = &self.context {
+            if Rc::ptr_eq(context, &gl) {
+                return;
+            } else {
+                self.clean();
+            }
+        }
+
+        self.symbol.compile(&*gl);
+        self.prepare_buffer(&*gl);
+
+        self.context = Some(gl);
+    }
+
+    fn prepare_buffer(&mut self, gl: &Context) {
         if self.buffer.is_none() {
             let mut vertices = vec![];
             let mut indices = vec![];
@@ -41,17 +65,34 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
                 }
             }
 
+            if vertices.len() == 0 {
+                return;
+            }
+
             let indices = if indices.len() == 0 { None } else { Some(&indices[..]) };
-            let gl = target.context();
-            self.buffer = Some(GlBuffer::create(gl, &vertices, indices));
+            self.buffer = Some(GlBuffer::create(&*gl, &vertices, indices));
         }
+    }
+
+    pub fn add(&mut self, feature: G) {
+        self.clean();
+        self.features.push(feature);
     }
 }
 
 impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
     fn draw(&mut self, target: &RenderTarget, position: &MapPosition) {
-        self.symbol.compile(target.context());
-        self.prepare_buffer(target);
+        if self.features.len() == 0 {
+            return;
+        }
+
+        self.set_context(target.context());
+
+        if self.buffer.is_none() {
+            // Nothing was rendered
+            return;
+        }
+
         let t = position.matrix();
         let (width, height) = target.get_dimensions();
         let t = [
@@ -62,7 +103,7 @@ impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
         ];
 
         unsafe {
-            let gl = target.context();
+            let gl = self.context.as_ref().unwrap();
             gl.use_program(Some(*self.symbol.program().unwrap()));
 
             let transformation_location = gl.get_uniform_location(*self.symbol.program().unwrap(), "transformation").unwrap();
@@ -82,5 +123,11 @@ impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
 
             gl.bind_vertex_array(None);
         }
+    }
+}
+
+impl<G, S: Symbol<G>> Drop for StaticLayer<G, S> {
+    fn drop(&mut self) {
+        self.clean();
     }
 }

@@ -37,7 +37,7 @@ impl NativeRuntime {
         };
 
         let map = Map::new();
-        let mut control = DefaultMapControl::new();
+        let control = DefaultMapControl::new();
 
         Self {
             map,
@@ -53,14 +53,14 @@ impl NativeRuntime {
     }
 
     pub fn run(self) {
-        let NativeRuntime {context, mut map, window, event_loop, mut control} = self;
+        let NativeRuntime {context, map, window, event_loop, mut control} = self;
         let map = Rc::new(RefCell::new(map));
         control.attach(map.clone());
 
-        let gl = context;
+        let gl = Rc::new(context);
         event_loop.run(move |event, _, control_flow| {
             let window_size = window.window().inner_size();
-            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), &gl, window_size.width, window_size.height);
+            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), gl.clone(), window_size.width, window_size.height);
 
             window.swap_buffers().unwrap();
         });

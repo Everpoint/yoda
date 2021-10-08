@@ -1,6 +1,7 @@
 use crate::map::Map;
 use glow::{Context, HasContext};
 use crate::render_target::RenderTarget;
+use std::rc::Rc;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native;
@@ -8,7 +9,7 @@ pub mod native;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
-fn event_loop_cycle(event: winit::event::Event<()>, control_flow: &mut winit::event_loop::ControlFlow, map: &mut Map, gl: &Context, width: u32, height: u32) {
+fn event_loop_cycle(event: winit::event::Event<()>, control_flow: &mut winit::event_loop::ControlFlow, map: &mut Map, gl: Rc<Context>, width: u32, height: u32) {
     match event {
         winit::event::Event::WindowEvent { event, .. } => match event {
             winit::event::WindowEvent::CloseRequested => {
@@ -42,7 +43,7 @@ fn event_loop_cycle(event: winit::event::Event<()>, control_flow: &mut winit::ev
         gl.clear_color(0.1, 0.2, 0.3, 1.0);
         gl.clear(glow::COLOR_BUFFER_BIT);
 
-        let mut target = RenderTarget::new(&gl, (width, height));
+        let mut target = RenderTarget::new(gl, (width, height));
         map.draw(&mut target);
     }
 }
