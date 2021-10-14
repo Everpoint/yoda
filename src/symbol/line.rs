@@ -1,6 +1,11 @@
 use crate::{Color, Polyline, Point3};
 use crate::symbol::Symbol;
-use lyon::tessellation::{VertexBuffers, StrokeVertexConstructor, StrokeOptions, StrokeTessellator};
+use lyon::tessellation::{
+    VertexBuffers,
+    StrokeVertexConstructor,
+    StrokeOptions,
+    StrokeTessellator
+};
 use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
 use lyon::tessellation::path::builder::{PathBuilder, Build};
 use lyon::math::point;
@@ -40,8 +45,8 @@ void main() {
 }
 "#;
 
-struct VertexCtor {
-    color: Color,
+pub struct VertexCtor {
+    pub color: Color,
 }
 
 impl StrokeVertexConstructor<LineVertex> for VertexCtor {
