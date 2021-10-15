@@ -19,7 +19,13 @@ fn main() {
     let points = vec![[0.0, 0.0, 0.0], [100.0, 100.0, 0.0], [100.0, 0.0, 0.0], [0.0, 100.0, 0.0]];
     let point_layer = StaticLayer::new(point_symbol, points);
 
-    let polygon_symbol = PolygonSymbol { fill_color: [0.0, 0.5, 0.3, 0.5], program: None};
+    let polygon_symbol = PolygonSymbol {
+        fill_color: [0.0, 0.5, 0.3, 0.5],
+        stroke_color: [0.0, 0.5, 0.5, 1.0],
+        stroke_width: 2.5,
+        program: None
+    };
+    
     let polygon = vec![
         vec![
             [-150.0, -150.0, 0.0],
