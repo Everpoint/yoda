@@ -77,24 +77,20 @@ impl Symbol<Polygon> for PolygonSymbol {
         let mut fill_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color});
         let mut fill_tessellator = FillTessellator::new();
 
-        let result = fill_tessellator.tessellate_path(
+        fill_tessellator.tessellate_path(
             &path,
             &FillOptions::default().with_fill_rule(FillRule::EvenOdd),
             &mut fill_vertex_builder
-        );
-
-        assert!(result.is_ok());
+        ).unwrap();
 
         let mut stroke_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color});
         let mut stroke_tessellator = StrokeTessellator::new();
 
-        let result = stroke_tessellator.tessellate_path(
+        stroke_tessellator.tessellate_path(
             &path,
         &StrokeOptions::default().with_line_width(self.stroke_width),
             &mut stroke_vertex_builder
-        );
-
-        assert!(result.is_ok());
+        ).unwrap();
 
         let VertexBuffers {vertices, indices} = buffers;
         (vertices, Some(indices))
