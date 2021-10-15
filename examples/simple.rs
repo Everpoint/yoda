@@ -1,7 +1,7 @@
 use yoda::map::Map;
 use yoda::layer::StaticLayer;
 use yoda::render_target::RenderTarget;
-use yoda::symbol::{CircleSymbol, LineSymbol, PolygonSymbol, };
+use yoda::symbol::{CircleSymbol, LineSymbol, PolygonSymbol};
 use winit::event_loop::{EventLoop, ControlFlow};
 use glutin::window::Window;
 use glutin::{ContextWrapper, PossiblyCurrent};
@@ -21,7 +21,7 @@ fn main() {
 
     let polygon_symbol = PolygonSymbol {
         fill_color: [0.0, 0.5, 0.3, 0.5],
-        stroke_color: [1.0, 1.0, 1.0, 0.0],
+        stroke_color: [0.0, 0.5, 0.5, 1.0],
         stroke_width: 2.5,
         program: None
     };

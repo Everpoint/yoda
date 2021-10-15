@@ -1,10 +1,10 @@
 use crate::{Color, Polygon};
 use crate::symbol::Symbol;
-use lyon::tessellation::{VertexBuffers, FillTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex, StrokeTessellator, StrokeOptions, StrokeBuilder, FillBuilder};
-use lyon::lyon_tessellation::{BuffersBuilder,StrokeVertex};
-use lyon::tessellation::path::builder::{PathBuilder, Build};
+use lyon::tessellation::{VertexBuffers, FillTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex, StrokeTessellator, StrokeOptions};
+use lyon::lyon_tessellation::{BuffersBuilder};
 use lyon::math::point;
 use glow::Program;
+use lyon::tessellation::path::Path;
 use crate::symbol::line::{LineVertex, VertexCtor};
 
 pub struct PolygonSymbol {
@@ -70,39 +70,48 @@ impl Symbol<Polygon> for PolygonSymbol {
     }
 
     fn convert(&self, geometry: &Polygon) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
+
+        let path = build_geometry(geometry);
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
 
-        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color });
-        let mut tessellator = FillTessellator::new();
-        let options = FillOptions::default().with_fill_rule(FillRule::EvenOdd);
-        let mut fill_builder = tessellator.builder(&options, &mut geometry_builder);
+        let mut fill_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color});
+        let mut fill_tessellator = FillTessellator::new();
 
-        for contour in geometry {
-            fill_builder.begin(point(contour[0][0], contour[0][1]));
-            for p in contour.iter().skip(1) {
-                fill_builder.line_to(point(p[0], p[1]));
-            }
-            fill_builder.end(true);
-        }
+        let result = fill_tessellator.tessellate_path(
+            &path,
+            &FillOptions::default().with_fill_rule(FillRule::EvenOdd),
+            &mut fill_vertex_builder
+        );
 
-        fill_builder.build().unwrap();
+        assert!(result.is_ok());
 
-        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color});
-        let mut tessellator = StrokeTessellator::new();
-        let options = StrokeOptions::default().with_line_width(self.stroke_width);
-        let mut stroke_builder = tessellator.builder(&options, &mut geometry_builder);
+        let mut stroke_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color});
+        let mut stroke_tessellator = StrokeTessellator::new();
 
-        for contour in geometry {
-            stroke_builder.begin(point(contour[0][0], contour[0][1]));
-            for p in contour.iter().skip(1) {
-                stroke_builder.line_to(point(p[0], p[1]));
-            }
-            stroke_builder.end(true);
-        }
+        let result = stroke_tessellator.tessellate_path(
+            &path,
+        &StrokeOptions::default().with_line_width(self.stroke_width),
+            &mut stroke_vertex_builder
+        );
 
-        stroke_builder.build().unwrap();
+        assert!(result.is_ok());
 
         let VertexBuffers {vertices, indices} = buffers;
         (vertices, Some(indices))
     }
+}
+
+fn build_geometry(geometry: &Polygon) -> Path {
+
+    let mut path_builder = Path::builder();
+
+    for contour in geometry {
+        path_builder.begin(point(contour[0][0], contour[0][1]));
+        for p in contour.iter().skip(1) {
+            path_builder.line_to(point(p[0], p[1]));
+        }
+        path_builder.end(true);
+    }
+
+    path_builder.build()
 }
