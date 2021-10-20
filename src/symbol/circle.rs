@@ -14,16 +14,23 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 direction;
 layout (location = 2) in vec4 color;
 layout (location = 3) in float size;
+layout (location = 4) in uint id;
 
 uniform mat4 transformation;
 uniform vec2 screen_size;
+uniform uint mode;
 
 out vec4 frag_color;
 
 void main() {
     vec2 dir = direction * size / screen_size;
     gl_Position = vec4((vec4(position.xyz, 1.0) * transformation + vec4(dir, 0.0, 0.0)).xy, 0.0, 1.0);
-    frag_color = color;
+    if (mode == 0u) {
+        frag_color = color;
+    }
+    if (mode == 1u) {
+        frag_color = vec4((float(id) + 1.0) / 255.0, 0.0, 0.0, 1.0);
+    }
 }
 "#;
 
@@ -32,9 +39,11 @@ precision mediump float;
 
 in vec4 frag_color ;
 out vec4 FragColor;
+layout(location = 0) out vec4 color;
 
 void main() {
     FragColor = frag_color;
+    color = frag_color;
 }
 "#;
 
@@ -57,11 +66,12 @@ impl Symbol<Point3> for CircleSymbol {
         self.program.as_ref()
     }
 
-    fn convert(&self, point: &Point3) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
+    fn convert(&self, point: &Point3, id: u32) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
         let mut result = vec![];
         const SEGMENTS: usize = 16;
+
         for i in 0..SEGMENTS {
-            result.push(CirclePointVertex {position: point.clone(), direction: [0.0, 0.0], size: self.size, color: self.color});
+            result.push(CirclePointVertex {position: point.clone(), direction: [0.0, 0.0], size: self.size, color: self.color, id});
 
             let from = (i as f32) / (SEGMENTS as f32);
 
@@ -70,7 +80,7 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color});
+            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color, id});
 
             let to = (i as f32 + 1.0) / (SEGMENTS as f32);
             let angle = std::f32::consts::PI * to * 2.0;
@@ -78,7 +88,7 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color});
+            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color, id});
         }
 
         (result, None)
@@ -92,6 +102,7 @@ pub struct CirclePointVertex {
     direction: Point,
     color: Color,
     size: f32,
+    id: u32,
 }
 
 impl Vertex for CirclePointVertex {
@@ -101,6 +112,7 @@ impl Vertex for CirclePointVertex {
             VertexAttribute {location: 1, size: 2, value_type: AttributeValueType::Float},
             VertexAttribute {location: 2, size: 4, value_type: AttributeValueType::Float},
             VertexAttribute {location: 3, size: 1, value_type: AttributeValueType::Float},
+            VertexAttribute {location: 4, size: 1, value_type: AttributeValueType::UnsignedInteger},
         ]
     }
 }

@@ -42,6 +42,10 @@ impl Map {
         self.layers.push(layer);
     }
 
+    pub fn layers(&self) -> &Vec<Rc<RefCell<dyn Layer>>> {
+        &self.layers
+    }
+
     fn animation_frame(&mut self) {
         todo!()
     }
@@ -85,7 +89,7 @@ impl<E> EventListener<E> for Map
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MapPosition {
     screen_scale: na::Matrix4<f32>,
     scale: na::Matrix4<f32>,
@@ -163,7 +167,7 @@ impl MapPosition {
         self.screen_scale * self.scale * self.rotation() * self.translate
     }
 
-    fn set_screen_size(&mut self, width: u32, height: u32) {
+    pub fn set_screen_size(&mut self, width: u32, height: u32) {
         self.screen_scale = na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(2.0 / width as f32, 2.0 / height as f32, 2.0 / width as f32));
     }
 

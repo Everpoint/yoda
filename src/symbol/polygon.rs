@@ -17,8 +17,10 @@ pub struct PolygonSymbol {
 const VERTEX_SHADER: &'static str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
+layout (location = 2) in uint id;
 
 uniform mat4 transformation;
+uniform uint mode;
 uniform vec2 screen_size;
 
 out vec4 frag_color;
@@ -26,6 +28,9 @@ out vec4 frag_color;
 void main() {
     gl_Position = vec4(position.xyz, 1.0) * transformation;
     frag_color = color;
+    if (mode == 1u) {
+        frag_color = vec4((float(id) + 1.0) / 255.0, 0.0, 0.0, 1.0);
+    }
 }
 "#;
 
@@ -46,6 +51,7 @@ impl FillVertexConstructor<LineVertex> for VertexCtor {
         LineVertex {
             position: [point.x, point.y, 0.0],
             color: self.color,
+            id: self.id,
         }
     }
 }
@@ -69,12 +75,12 @@ impl Symbol<Polygon> for PolygonSymbol {
         self.program.as_ref()
     }
 
-    fn convert(&self, geometry: &Polygon) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
+    fn convert(&self, geometry: &Polygon, id: u32) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
 
         let path = build_geometry(geometry);
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
 
-        let mut fill_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color});
+        let mut fill_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color, id});
         let mut fill_tessellator = FillTessellator::new();
 
         fill_tessellator.tessellate_path(
@@ -83,7 +89,7 @@ impl Symbol<Polygon> for PolygonSymbol {
             &mut fill_vertex_builder
         ).unwrap();
 
-        let mut stroke_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color});
+        let mut stroke_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color, id});
         let mut stroke_tessellator = StrokeTessellator::new();
 
         stroke_tessellator.tessellate_path(

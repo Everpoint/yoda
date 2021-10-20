@@ -22,8 +22,10 @@ pub struct LineSymbol {
 const VERTEX_SHADER: &'static str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
+layout (location = 2) in uint id;
 
 uniform mat4 transformation;
+uniform uint mode;
 uniform vec2 screen_size;
 
 out vec4 frag_color;
@@ -31,6 +33,12 @@ out vec4 frag_color;
 void main() {
     gl_Position = vec4(position.xyz, 1.0) * transformation;
     frag_color = color;
+    if (mode == 0u) {
+        frag_color = color;
+    }
+    if (mode == 1u) {
+        frag_color = vec4((float(id) + 1.0) / 255.0, 0.0, 0.0, 1.0);
+    }
 }
 "#;
 
@@ -47,6 +55,7 @@ void main() {
 
 pub struct VertexCtor {
     pub color: Color,
+    pub id: u32,
 }
 
 impl StrokeVertexConstructor<LineVertex> for VertexCtor {
@@ -55,6 +64,7 @@ impl StrokeVertexConstructor<LineVertex> for VertexCtor {
         LineVertex {
             position: [point.x, point.y, 0.0],
             color: self.color,
+            id: self.id,
         }
     }
 }
@@ -78,13 +88,13 @@ impl Symbol<Polyline> for LineSymbol {
         self.program.as_ref()
     }
 
-    fn convert(&self, geometry: &Polyline) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
+    fn convert(&self, geometry: &Polyline, id: u32) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
         if geometry.len() < 2 {
             return (vec![], None);
         }
 
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
-        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.color});
+        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.color, id});
         let mut tessellator = StrokeTessellator::new();
         let options = StrokeOptions::default().with_line_width(self.width);
         let mut builder = tessellator.builder(&options, &mut geometry_builder);
@@ -106,6 +116,7 @@ impl Symbol<Polyline> for LineSymbol {
 pub struct LineVertex {
     pub position: Point3,
     pub color: Color,
+    pub id: u32,
 }
 
 impl Vertex for LineVertex {
@@ -113,6 +124,7 @@ impl Vertex for LineVertex {
         vec![
             VertexAttribute {location: 0, size: 3, value_type: AttributeValueType::Float},
             VertexAttribute {location: 1, size: 4, value_type: AttributeValueType::Float},
+            VertexAttribute {location: 2, size: 1, value_type: AttributeValueType::UnsignedInteger},
         ]
     }
 }

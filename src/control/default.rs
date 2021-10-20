@@ -2,7 +2,7 @@ use crate::map::Map;
 use std::rc::Rc;
 use crate::event::{EventListener, DragEvent, EventState, ZoomEvent};
 use std::cell::RefCell;
-use glutin::event::MouseButton;
+use winit::event::MouseButton;
 
 pub struct DefaultMapControl {
     map: Option<Rc<RefCell<Map>>>,

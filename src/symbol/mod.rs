@@ -66,7 +66,7 @@ pub trait Symbol<G> {
         self.program().is_some()
     }
     fn program(&self) -> Option<&Program>;
-    fn convert(&self, geometry: &G) -> (Vec<Self::Vertex>, Option<Vec<u32>>);
+    fn convert(&self, geometry: &G, id: u32) -> (Vec<Self::Vertex>, Option<Vec<u32>>);
 }
 
 fn get_vertex_source(source: &str) -> String {

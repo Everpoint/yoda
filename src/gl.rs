@@ -28,6 +28,16 @@ impl AttributeValueType {
             AttributeValueType::Double => 8,
         }
     }
+
+    pub fn is_int(&self) -> bool {
+        match self {
+            AttributeValueType::Boolean => true,
+            AttributeValueType::Integer => true,
+            AttributeValueType::UnsignedInteger => true,
+            AttributeValueType::Float => false,
+            AttributeValueType::Double => false,
+        }
+    }
 }
 
 pub struct VertexAttribute {
@@ -60,7 +70,11 @@ impl GlBuffer {
 
             let mut offset = 0;
             for attrib in V::attributes() {
-                gl.vertex_attrib_pointer_f32(attrib.location, attrib.size, attrib.value_type.glow_type(), false, vertex_size as i32, offset);
+                if attrib.value_type.is_int() {
+                    gl.vertex_attrib_pointer_i32(attrib.location, attrib.size, attrib.value_type.glow_type(), vertex_size as i32, offset);
+                } else {
+                    gl.vertex_attrib_pointer_f32(attrib.location, attrib.size, attrib.value_type.glow_type(), false, vertex_size as i32, offset);
+                }
                 gl.enable_vertex_attrib_array(attrib.location);
 
                 offset += attrib.size as i32 * attrib.value_type.size();

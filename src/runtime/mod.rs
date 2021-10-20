@@ -40,6 +40,7 @@ fn event_loop_cycle(event: winit::event::Event<()>, control_flow: &mut winit::ev
     *control_flow = winit::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
     unsafe {
+        gl.viewport(0, 0, width as i32, height as i32);
         gl.clear_color(0.1, 0.2, 0.3, 1.0);
         gl.clear(glow::COLOR_BUFFER_BIT);
 

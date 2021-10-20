@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 pub struct NativeRuntime {
     map: Map,
-    context: Context,
+    context: Rc<Context>,
     window: ContextWrapper<PossiblyCurrent, Window>,
     event_loop: glutin::event_loop::EventLoop<()>,
     control: DefaultMapControl,
@@ -41,7 +41,7 @@ impl NativeRuntime {
 
         Self {
             map,
-            context: gl,
+            context: Rc::new(gl),
             window,
             event_loop,
             control,
@@ -52,15 +52,18 @@ impl NativeRuntime {
         &mut self.map
     }
 
+    pub fn context(&self) -> Rc<Context> {
+        self.context.clone()
+    }
+
     pub fn run(self) {
         let NativeRuntime {context, map, window, event_loop, mut control} = self;
         let map = Rc::new(RefCell::new(map));
         control.attach(map.clone());
 
-        let gl = Rc::new(context);
         event_loop.run(move |event, _, control_flow| {
             let window_size = window.window().inner_size();
-            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), gl.clone(), window_size.width, window_size.height);
+            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), context.clone(), window_size.width, window_size.height);
 
             window.swap_buffers().unwrap();
         });

@@ -4,6 +4,7 @@ pub use default::DefaultMapControl;
 use crate::map::Map;
 use crate::event::{ClickEvent, HandlerStore, TypedHandlerStore, EventListener, DragEvent, ZoomEvent};
 use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
+use crate::render_target::RenderTarget;
 
 #[derive(Debug)]
 pub struct MouseState {
@@ -146,7 +147,7 @@ impl<'a> MapEventDispatcher<'a> {
             let dy = -(y - prev_position[1]);
             let curr_cursor_position = [x, y];
 
-            // we do have a way to process drag event with multiple mouse buttons pressed, so
+            // we don't have a way to process drag event with multiple mouse buttons pressed, so
             // we precess them in priority list. If left button pressed, we ignore others etc.
             // I cannot think of a use case when firing drag event for different buttons at the
             // same time can be useful...
