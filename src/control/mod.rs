@@ -135,7 +135,7 @@ impl<'a> MapEventDispatcher<'a> {
               HandlerStore: TypedHandlerStore<E>
     {
         let store = if let Some(s) = self.map.handler_store().upgrade() { s } else { return; };
-        TypedHandlerStore::trigger_event(&store, event, &mut self.map);
+        TypedHandlerStore::trigger_event(&store, event, self.map);
     }
 
     fn cursor_moved(&mut self, x: i32, y: i32) {

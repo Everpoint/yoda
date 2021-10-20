@@ -13,11 +13,11 @@ fn main() {
     let symbol = CircleSymbol { size: 10.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
     let layer = Rc::new(RefCell::new(StaticLayer::new(symbol, vec![])));
 
-    let context = runtime.context().clone();
+    let context = runtime.context();
     let map = runtime.map_mut();
     map.add_layer(layer.clone());
 
-    let layer_copy = layer.clone();
+    let layer_copy = layer;
     map.on(Rc::new(move |e: ClickEvent, map| {
         if e.button != MouseButton::Left {
             return EventState::Continue;

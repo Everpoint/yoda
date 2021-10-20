@@ -1,11 +1,11 @@
-use yoda::map::Map;
+
 use yoda::layer::StaticLayer;
-use yoda::render_target::RenderTarget;
-use yoda::symbol::{CircleSymbol, LineSymbol, PolygonSymbol};
-use winit::event_loop::{EventLoop, ControlFlow};
-use glutin::window::Window;
-use glutin::{ContextWrapper, PossiblyCurrent};
-use glow::HasContext;
+
+use yoda::symbol::{CircleSymbol};
+
+
+
+
 use yoda::runtime::native::NativeRuntime;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -44,11 +44,11 @@ fn main() {
 
     eprintln!("Loaded {} points. ", points.len());
 
-    let mut symbol = CircleSymbol { size: 5.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
+    let symbol = CircleSymbol { size: 5.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
     let layer = StaticLayer::new(symbol, points);
 
     let mut runtime = NativeRuntime::new(&|b| b.with_title("Shapefile rendering example"));
-    let mut map = runtime.map_mut();
+    let map = runtime.map_mut();
 
     map.set_center((bbox[2] + bbox[0]) / 2.0, (bbox[3] + bbox[1]) / 2.0);
     map.set_resolution((bbox[2] - bbox[0]) / 800.0);

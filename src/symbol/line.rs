@@ -19,7 +19,7 @@ pub struct LineSymbol {
     pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"
+const VERTEX_SHADER: &str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in uint id;
@@ -42,7 +42,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"
+const FRAGMENT_SHADER: &str = r#"
 precision mediump float;
 
 in vec4 frag_color;

@@ -1,11 +1,11 @@
-use yoda::map::Map;
+
 use yoda::layer::StaticLayer;
-use yoda::render_target::RenderTarget;
+
 use yoda::symbol::{CircleSymbol, LineSymbol, PolygonSymbol};
-use winit::event_loop::{EventLoop, ControlFlow};
-use glutin::window::Window;
-use glutin::{ContextWrapper, PossiblyCurrent};
-use glow::HasContext;
+
+
+
+
 use yoda::runtime::native::NativeRuntime;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -43,7 +43,7 @@ fn main() {
 
     let mut runtime = NativeRuntime::new(&|b| b.with_title("Simple yoda map example"));
 
-    let mut map = runtime.map_mut();
+    let map = runtime.map_mut();
     map.add_layer(Rc::new(RefCell::new(line_layer)));
     map.add_layer(Rc::new(RefCell::new(point_layer)));
     map.add_layer(Rc::new(RefCell::new(polygon_layer)));

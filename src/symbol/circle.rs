@@ -9,7 +9,7 @@ pub struct CircleSymbol {
     pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"
+const VERTEX_SHADER: &str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 direction;
 layout (location = 2) in vec4 color;
@@ -34,7 +34,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"
+const FRAGMENT_SHADER: &str = r#"
 precision mediump float;
 
 in vec4 frag_color;
@@ -69,7 +69,7 @@ impl Symbol<Point3> for CircleSymbol {
         const SEGMENTS: usize = 16;
 
         for i in 0..SEGMENTS {
-            result.push(CirclePointVertex {position: point.clone(), direction: [0.0, 0.0], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {position: *point, direction: [0.0, 0.0], size: self.size, color: self.color, id});
 
             let from = (i as f32) / (SEGMENTS as f32);
 
@@ -78,7 +78,7 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {position: *point, direction: [dx, dy], size: self.size, color: self.color, id});
 
             let to = (i as f32 + 1.0) / (SEGMENTS as f32);
             let angle = std::f32::consts::PI * to * 2.0;
@@ -86,7 +86,7 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: point.clone(), direction: [dx, dy], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {position: *point, direction: [dx, dy], size: self.size, color: self.color, id});
         }
 
         (result, None)

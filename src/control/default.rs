@@ -4,6 +4,7 @@ use crate::event::{EventListener, DragEvent, EventState, ZoomEvent};
 use std::cell::RefCell;
 use winit::event::MouseButton;
 
+#[derive(Default)]
 pub struct DefaultMapControl {
     map: Option<Rc<RefCell<Map>>>,
     handlers: HandlerIds,

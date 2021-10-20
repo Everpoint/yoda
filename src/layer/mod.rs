@@ -61,18 +61,18 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
             let mut vertices = vec![];
             let mut indices = vec![];
             for (id, p) in self.features.iter().enumerate() {
-                let (mut geom_vertices, geom_indexes) = self.symbol.convert(&p, id as u32);
+                let (mut geom_vertices, geom_indexes) = self.symbol.convert(p, id as u32);
                 vertices.append(&mut geom_vertices);
                 if let Some(mut i) = geom_indexes {
                     indices.append(&mut i);
                 }
             }
 
-            if vertices.len() == 0 {
+            if vertices.is_empty() {
                 return;
             }
 
-            let indices = if indices.len() == 0 { None } else { Some(&indices[..]) };
+            let indices = if indices.is_empty() { None } else { Some(&indices[..]) };
             self.buffer = Some(GlBuffer::create(&*gl, &vertices, indices));
         }
     }
@@ -116,7 +116,7 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
 
             let buffer = self.buffer.as_ref().unwrap();
             gl.bind_vertex_array(Some(buffer.vertex_array));
-            if let Some(_) = buffer.index_buffer {
+            if buffer.index_buffer.is_some() {
                 gl.draw_elements(glow::TRIANGLES, buffer.vertex_count as i32, glow::UNSIGNED_INT, 0);
             } else {
                 gl.draw_arrays(glow::TRIANGLES, 0, buffer.vertex_count as i32);
@@ -129,7 +129,7 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
 
 impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
     fn draw(&mut self, target: &RenderTarget, position: &MapPosition) {
-        if self.features.len() == 0 {
+        if self.features.is_empty() {
             return;
         }
 

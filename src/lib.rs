@@ -1,3 +1,5 @@
+#![deny(clippy::suspicious, clippy::style, clippy::complexity, clippy::perf)]
+
 pub mod control;
 pub mod map;
 pub mod layer;
@@ -15,4 +17,5 @@ pub type Point3 = [f32; 3];
 
 pub type Polyline = Vec<Point3>;
 pub type Polygon = Vec<Vec<Point3>>;
+pub type PolygonRef = [Vec<Point3>];
 

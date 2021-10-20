@@ -1,4 +1,4 @@
-use crate::{Color, Polygon};
+use crate::{Color, Polygon, PolygonRef};
 use crate::symbol::Symbol;
 use lyon::tessellation::{VertexBuffers, FillTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex, StrokeTessellator, StrokeOptions};
 use lyon::lyon_tessellation::{BuffersBuilder};
@@ -14,7 +14,7 @@ pub struct PolygonSymbol {
     pub program: Option<Program>
 }
 
-const VERTEX_SHADER: &'static str = r#"
+const VERTEX_SHADER: &str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in uint id;
@@ -34,7 +34,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"
+const FRAGMENT_SHADER: &str = r#"
 precision mediump float;
 
 in vec4 frag_color;
@@ -103,7 +103,7 @@ impl Symbol<Polygon> for PolygonSymbol {
     }
 }
 
-fn build_geometry(geometry: &Polygon) -> Path {
+fn build_geometry(geometry: &PolygonRef) -> Path {
 
     let mut path_builder = Path::builder();
 

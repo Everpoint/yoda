@@ -86,7 +86,7 @@ impl GlBuffer {
             let index_buffer = indices.map(|indices| {
                 let index_buffer = gl.create_buffer().unwrap();
                 gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(index_buffer));
-                gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, &to_bytes(&indices[0], 4 * indices.len()), glow::STATIC_DRAW);
+                gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, to_bytes(&indices[0], 4 * indices.len()), glow::STATIC_DRAW);
 
                 vertex_count = indices.len() as u32;
                 index_buffer

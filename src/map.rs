@@ -14,6 +14,12 @@ pub struct Map {
     handler_store: Rc<RefCell<HandlerStore>>,
 }
 
+impl Default for Map {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Map {
     pub fn new() -> Self {
         Self {
@@ -34,7 +40,7 @@ impl Map {
         }
     }
 
-    pub fn animate_to(&mut self, position: MapPosition, duration: u64) {
+    pub fn animate_to(&mut self, _position: MapPosition, _duration: u64) {
         todo!()
     }
 
@@ -115,7 +121,7 @@ impl MapPosition {
         2.0 / self.screen_scale[(1, 1)]
     }
 
-    fn translate(&mut self, dx: f32, dy: f32) {
+    fn translate(&mut self, _dx: f32, _dy: f32) {
         todo!()
     }
 
@@ -124,7 +130,7 @@ impl MapPosition {
         let rotated = self.inverse_rotation() * translate_px;
         let scaled = self.inverse_scale() * rotated;
         let translation = na::Matrix4::new_translation(&scaled.remove_fixed_rows::<1>(3));
-        self.translate = self.translate * translation;
+        self.translate *= translation;
     }
 
     pub fn rotate(&mut self, x: f32, z: f32) {
@@ -160,7 +166,7 @@ impl MapPosition {
         self.translate[(1, 3)] = -(map_c[1] + dy_scaled);
 
         let transformation = na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(delta, delta, delta));
-        self.scale = self.scale * transformation;
+        self.scale *= transformation;
     }
 
     pub fn matrix(&self) -> na::Matrix4<f32> {
