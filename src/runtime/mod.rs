@@ -1,6 +1,6 @@
 use crate::map::Map;
-use glow::{Context, HasContext};
 use crate::render_target::RenderTarget;
+use glow::{Context, HasContext};
 use std::rc::Rc;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -9,23 +9,30 @@ pub mod native;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
-fn event_loop_cycle(event: winit::event::Event<()>, control_flow: &mut winit::event_loop::ControlFlow, map: &mut Map, gl: Rc<Context>, width: u32, height: u32) {
+fn event_loop_cycle(
+    event: winit::event::Event<()>,
+    control_flow: &mut winit::event_loop::ControlFlow,
+    map: &mut Map,
+    gl: Rc<Context>,
+    width: u32,
+    height: u32,
+) {
     match event {
         winit::event::Event::WindowEvent { event, .. } => match event {
             winit::event::WindowEvent::CloseRequested => {
                 *control_flow = winit::event_loop::ControlFlow::Exit;
                 return;
-            },
+            }
             winit::event::WindowEvent::Resized(size) => {
                 unsafe {
                     gl.viewport(0, 0, size.width as i32, size.height as i32);
                 }
                 return;
-            },
+            }
             _ => {
                 map.control().handle_event(&event);
                 return;
-            },
+            }
         },
         winit::event::Event::NewEvents(cause) => match cause {
             winit::event::StartCause::ResumeTimeReached { .. } => (),

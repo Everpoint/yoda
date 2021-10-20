@@ -1,16 +1,13 @@
-use crate::{Color, Polyline, Point3};
+use crate::gl::{AttributeValueType, Vertex, VertexAttribute};
 use crate::symbol::Symbol;
-use lyon::tessellation::{
-    VertexBuffers,
-    StrokeVertexConstructor,
-    StrokeOptions,
-    StrokeTessellator
-};
-use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
-use lyon::tessellation::path::builder::{PathBuilder, Build};
-use lyon::math::point;
+use crate::{Color, Point3, Polyline};
 use glow::Program;
-use crate::gl::{Vertex, VertexAttribute, AttributeValueType};
+use lyon::lyon_tessellation::{BuffersBuilder, StrokeVertex};
+use lyon::math::point;
+use lyon::tessellation::path::builder::{Build, PathBuilder};
+use lyon::tessellation::{
+    StrokeOptions, StrokeTessellator, StrokeVertexConstructor, VertexBuffers,
+};
 
 pub struct LineSymbol {
     pub width: f32,
@@ -94,7 +91,13 @@ impl Symbol<Polyline> for LineSymbol {
         }
 
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
-        let mut geometry_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.color, id});
+        let mut geometry_builder = BuffersBuilder::new(
+            &mut buffers,
+            VertexCtor {
+                color: self.color,
+                id,
+            },
+        );
         let mut tessellator = StrokeTessellator::new();
         let options = StrokeOptions::default().with_line_width(self.width);
         let mut builder = tessellator.builder(&options, &mut geometry_builder);
@@ -107,7 +110,7 @@ impl Symbol<Polyline> for LineSymbol {
 
         builder.build().unwrap();
 
-        let VertexBuffers {vertices, indices} = buffers;
+        let VertexBuffers { vertices, indices } = buffers;
         (vertices, Some(indices))
     }
 }
@@ -122,9 +125,21 @@ pub struct LineVertex {
 impl Vertex for LineVertex {
     fn attributes() -> Vec<VertexAttribute> {
         vec![
-            VertexAttribute {location: 0, size: 3, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 1, size: 4, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 2, size: 1, value_type: AttributeValueType::UnsignedInteger},
+            VertexAttribute {
+                location: 0,
+                size: 3,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 1,
+                size: 4,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 2,
+                size: 1,
+                value_type: AttributeValueType::UnsignedInteger,
+            },
         ]
     }
 }

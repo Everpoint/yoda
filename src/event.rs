@@ -1,6 +1,6 @@
 use crate::map::Map;
-use std::rc::{Weak, Rc};
 use std::cell::RefCell;
+use std::rc::{Rc, Weak};
 use winit::event::MouseButton;
 
 #[derive(Debug, Clone, Copy)]
@@ -10,8 +10,7 @@ pub struct ClickEvent {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct DoubleClickEvent {
-}
+pub struct DoubleClickEvent {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct DragEvent {
@@ -114,8 +113,9 @@ impl TypedHandlerStore<ZoomEvent> for HandlerStore {
 }
 
 pub trait EventListener<E>
-    where E: Copy,
-          HandlerStore: TypedHandlerStore<E>
+where
+    E: Copy,
+    HandlerStore: TypedHandlerStore<E>,
 {
     fn handler_store(&self) -> Weak<RefCell<HandlerStore>>;
 
@@ -128,7 +128,9 @@ pub trait EventListener<E>
 
     fn off(&self, handler_id: usize) {
         let store = self.handler_store().upgrade().unwrap();
-        let position = TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut()).iter().position(|(id, _)| *id == handler_id);
+        let position = TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut())
+            .iter()
+            .position(|(id, _)| *id == handler_id);
         if let Some(index) = position {
             TypedHandlerStore::<E>::get_store_mut(&mut *store.borrow_mut()).remove(index);
         }

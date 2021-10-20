@@ -1,7 +1,7 @@
-use crate::{Color, Point, Point3};
+use crate::gl::{AttributeValueType, Vertex, VertexAttribute};
 use crate::symbol::Symbol;
+use crate::{Color, Point, Point3};
 use glow::Program;
-use crate::gl::{Vertex, VertexAttribute, AttributeValueType};
 
 pub struct CircleSymbol {
     pub color: Color,
@@ -69,7 +69,13 @@ impl Symbol<Point3> for CircleSymbol {
         const SEGMENTS: usize = 16;
 
         for i in 0..SEGMENTS {
-            result.push(CirclePointVertex {position: *point, direction: [0.0, 0.0], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {
+                position: *point,
+                direction: [0.0, 0.0],
+                size: self.size,
+                color: self.color,
+                id,
+            });
 
             let from = (i as f32) / (SEGMENTS as f32);
 
@@ -78,7 +84,13 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: *point, direction: [dx, dy], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {
+                position: *point,
+                direction: [dx, dy],
+                size: self.size,
+                color: self.color,
+                id,
+            });
 
             let to = (i as f32 + 1.0) / (SEGMENTS as f32);
             let angle = std::f32::consts::PI * to * 2.0;
@@ -86,7 +98,13 @@ impl Symbol<Point3> for CircleSymbol {
             let dx = angle.cos();
             let dy = angle.sin();
 
-            result.push(CirclePointVertex {position: *point, direction: [dx, dy], size: self.size, color: self.color, id});
+            result.push(CirclePointVertex {
+                position: *point,
+                direction: [dx, dy],
+                size: self.size,
+                color: self.color,
+                id,
+            });
         }
 
         (result, None)
@@ -106,11 +124,31 @@ pub struct CirclePointVertex {
 impl Vertex for CirclePointVertex {
     fn attributes() -> Vec<VertexAttribute> {
         vec![
-            VertexAttribute {location: 0, size: 3, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 1, size: 2, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 2, size: 4, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 3, size: 1, value_type: AttributeValueType::Float},
-            VertexAttribute {location: 4, size: 1, value_type: AttributeValueType::UnsignedInteger},
+            VertexAttribute {
+                location: 0,
+                size: 3,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 1,
+                size: 2,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 2,
+                size: 4,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 3,
+                size: 1,
+                value_type: AttributeValueType::Float,
+            },
+            VertexAttribute {
+                location: 4,
+                size: 1,
+                value_type: AttributeValueType::UnsignedInteger,
+            },
         ]
     }
 }

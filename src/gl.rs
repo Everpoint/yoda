@@ -1,4 +1,4 @@
-use glow::{VertexArray, Buffer, Context, HasContext};
+use glow::{Buffer, Context, HasContext, VertexArray};
 
 pub enum AttributeValueType {
     Boolean,
@@ -66,14 +66,31 @@ impl GlBuffer {
             let vertex_size = std::mem::size_of::<V>();
             let vertex_buffer = gl.create_buffer().unwrap();
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(vertex_buffer));
-            gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, to_bytes(&vertices[0], vertex_size * vertices.len()), glow::STATIC_DRAW);
+            gl.buffer_data_u8_slice(
+                glow::ARRAY_BUFFER,
+                to_bytes(&vertices[0], vertex_size * vertices.len()),
+                glow::STATIC_DRAW,
+            );
 
             let mut offset = 0;
             for attrib in V::attributes() {
                 if attrib.value_type.is_int() {
-                    gl.vertex_attrib_pointer_i32(attrib.location, attrib.size, attrib.value_type.glow_type(), vertex_size as i32, offset);
+                    gl.vertex_attrib_pointer_i32(
+                        attrib.location,
+                        attrib.size,
+                        attrib.value_type.glow_type(),
+                        vertex_size as i32,
+                        offset,
+                    );
                 } else {
-                    gl.vertex_attrib_pointer_f32(attrib.location, attrib.size, attrib.value_type.glow_type(), false, vertex_size as i32, offset);
+                    gl.vertex_attrib_pointer_f32(
+                        attrib.location,
+                        attrib.size,
+                        attrib.value_type.glow_type(),
+                        false,
+                        vertex_size as i32,
+                        offset,
+                    );
                 }
                 gl.enable_vertex_attrib_array(attrib.location);
 
@@ -86,7 +103,11 @@ impl GlBuffer {
             let index_buffer = indices.map(|indices| {
                 let index_buffer = gl.create_buffer().unwrap();
                 gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(index_buffer));
-                gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, to_bytes(&indices[0], 4 * indices.len()), glow::STATIC_DRAW);
+                gl.buffer_data_u8_slice(
+                    glow::ELEMENT_ARRAY_BUFFER,
+                    to_bytes(&indices[0], 4 * indices.len()),
+                    glow::STATIC_DRAW,
+                );
 
                 vertex_count = indices.len() as u32;
                 index_buffer
@@ -95,14 +116,16 @@ impl GlBuffer {
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
             gl.bind_vertex_array(None);
 
-            Self {vertex_array, vertex_buffer, index_buffer, vertex_count}
+            Self {
+                vertex_array,
+                vertex_buffer,
+                index_buffer,
+                vertex_count,
+            }
         }
     }
 }
 
 unsafe fn to_bytes<T>(p: &T, size: usize) -> &[u8] {
-    std::slice::from_raw_parts(
-        (p as *const T) as *const u8,
-        size,
-    )
+    std::slice::from_raw_parts((p as *const T) as *const u8, size)
 }

@@ -1,8 +1,8 @@
+use crate::control::DefaultMapControl;
 use crate::map::Map;
 use glow::{Context, HasContext};
-use glutin::{ContextWrapper, PossiblyCurrent};
 use glutin::window::Window;
-use crate::control::DefaultMapControl;
+use glutin::{ContextWrapper, PossiblyCurrent};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -29,7 +29,8 @@ impl NativeRuntime {
         };
 
         let gl = unsafe {
-            let gl = glow::Context::from_loader_function(|s| window.get_proc_address(s) as *const _);
+            let gl =
+                glow::Context::from_loader_function(|s| window.get_proc_address(s) as *const _);
             gl.enable(glow::BLEND);
             gl.blend_func(glow::SRC_ALPHA, glow::ONE_MINUS_SRC_ALPHA);
 
@@ -57,13 +58,26 @@ impl NativeRuntime {
     }
 
     pub fn run(self) {
-        let NativeRuntime {context, map, window, event_loop, mut control} = self;
+        let NativeRuntime {
+            context,
+            map,
+            window,
+            event_loop,
+            mut control,
+        } = self;
         let map = Rc::new(RefCell::new(map));
         control.attach(map.clone());
 
         event_loop.run(move |event, _, control_flow| {
             let window_size = window.window().inner_size();
-            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), context.clone(), window_size.width, window_size.height);
+            super::event_loop_cycle(
+                event,
+                control_flow,
+                &mut *map.borrow_mut(),
+                context.clone(),
+                window_size.width,
+                window_size.height,
+            );
 
             window.swap_buffers().unwrap();
         });

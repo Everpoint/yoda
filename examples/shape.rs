@@ -1,17 +1,16 @@
-
 use yoda::layer::StaticLayer;
 
-use yoda::symbol::{CircleSymbol};
+use yoda::symbol::CircleSymbol;
 
-
-
-
-use yoda::runtime::native::NativeRuntime;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
+use yoda::runtime::native::NativeRuntime;
 
 fn main() {
-    let shape_points = shapefile::reader::ShapeReader::from_path("./examples/data/points_wm.shp").unwrap().read().unwrap();
+    let shape_points = shapefile::reader::ShapeReader::from_path("./examples/data/points_wm.shp")
+        .unwrap()
+        .read()
+        .unwrap();
     let mut points = vec![];
     let mut bbox: [f32; 4] = [f32::MAX, f32::MAX, f32::MIN, f32::MIN];
     for shape in shape_points {
@@ -22,8 +21,8 @@ fn main() {
                 bbox[1] = bbox[1].min(p.y as f32);
                 bbox[2] = bbox[2].max(p.x as f32);
                 bbox[3] = bbox[3].max(p.y as f32);
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 
@@ -32,7 +31,9 @@ fn main() {
     let len = points.len();
     for i in 0..9 {
         for j in 0..9 {
-            if i == 0 && j == 0 { continue; }
+            if i == 0 && j == 0 {
+                continue;
+            }
 
             for z in 0..len {
                 let p = points[z];
@@ -44,7 +45,11 @@ fn main() {
 
     eprintln!("Loaded {} points. ", points.len());
 
-    let symbol = CircleSymbol { size: 5.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
+    let symbol = CircleSymbol {
+        size: 5.0,
+        color: [0.0, 0.7, 0.7, 1.0],
+        program: None,
+    };
     let layer = StaticLayer::new(symbol, points);
 
     let mut runtime = NativeRuntime::new(&|b| b.with_title("Shapefile rendering example"));
