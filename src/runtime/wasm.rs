@@ -6,9 +6,13 @@ use glow::{Context, HasContext};
 use winit::window::Window;
 use winit::platform::web::WindowBuilderExtWebSys;
 use wasm_bindgen::JsCast;
+use std::rc::Rc;
+use crate::control::DefaultMapControl;
+use std::cell::RefCell;
 
 pub struct WasmRuntime {
     map: Map,
+    control: DefaultMapControl,
     context: Context,
     event_loop: winit::event_loop::EventLoop<()>,
     window: winit::window::Window,
@@ -34,11 +38,13 @@ impl WasmRuntime {
         }
 
         let map = Map::new();
+        let control = DefaultMapControl::new();
         Self {
             map,
             window,
             context: gl,
             event_loop,
+            control,
         }
     }
 
@@ -47,12 +53,15 @@ impl WasmRuntime {
     }
 
     pub fn run(self) {
-        let WasmRuntime {mut map, context, event_loop, window} = self;
-        let gl = context;
+        let WasmRuntime {mut map, mut control, context, event_loop, window} = self;
+        let gl = Rc::new(context);
+        let map = Rc::new(RefCell::new(map));
+        control.attach(map.clone());
+
 
         event_loop.run(move |event, _, control_flow| {
             let size = window.inner_size();
-            super::event_loop_cycle(event, control_flow, &mut map, &gl, size.width, size.height);
+            super::event_loop_cycle(event, control_flow, &mut *map.borrow_mut(), gl.clone(), size.width, size.height);
         });
     }
 }

@@ -37,13 +37,11 @@ void main() {
 const FRAGMENT_SHADER: &'static str = r#"
 precision mediump float;
 
-in vec4 frag_color ;
+in vec4 frag_color;
 out vec4 FragColor;
-layout(location = 0) out vec4 color;
 
 void main() {
     FragColor = frag_color;
-    color = frag_color;
 }
 "#;
 

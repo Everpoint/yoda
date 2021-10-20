@@ -25,7 +25,13 @@ pub fn draw_map(canvas: web_sys::HtmlCanvasElement) {
     let symbol = CircleSymbol { size: 20.0, color: [0.0, 0.7, 0.7, 1.0], program: None };
     let layer = StaticLayer::new(symbol, vec![[0.0, 0.0, 0.0], [100.0, 100.0, 0.0], [100.0, 0.0, 0.0], [0.0, 100.0, 0.0]]);
 
-    let polygon_symbol = PolygonSymbol { fill_color: [0.0, 0.5, 0.3, 0.5], program: None};
+    let polygon_symbol = PolygonSymbol {
+        fill_color: [0.0, 0.5, 0.3, 0.5],
+        stroke_color: [0.0, 0.5, 0.5, 1.0],
+        stroke_width: 2.5,
+        program: None
+    };
+
     let polygon = vec![
         vec![
             [-150.0, -150.0, 0.0],

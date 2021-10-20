@@ -1,4 +1,4 @@
-use glow::{Context, HasContext, NativeFramebuffer, NativeTexture};
+use glow::{Context, HasContext};
 use std::rc::Rc;
 
 pub struct RenderTarget {
@@ -53,8 +53,8 @@ impl RenderTarget {
 
 pub struct VirtualContext {
     gl: Rc<Context>,
-    framebuffer: NativeFramebuffer,
-    texture: NativeTexture,
+    framebuffer: <Context as HasContext>::Framebuffer,
+    texture: <Context as HasContext>::Texture,
 }
 
 impl VirtualContext {

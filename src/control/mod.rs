@@ -4,7 +4,6 @@ pub use default::DefaultMapControl;
 use crate::map::Map;
 use crate::event::{ClickEvent, HandlerStore, TypedHandlerStore, EventListener, DragEvent, ZoomEvent};
 use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
-use crate::render_target::RenderTarget;
 
 #[derive(Debug)]
 pub struct MouseState {
