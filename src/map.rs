@@ -264,3 +264,16 @@ struct MapAnimation {
     duration: u64,
     start: u64,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn position_set_center() {
+        let mut position = MapPosition::default();
+        position.set_center(-10.0, 10.0);
+        assert_eq!(-10.0, position.center()[0]);
+        assert_eq!(10.0, position.center()[1]);
+    }
+}
