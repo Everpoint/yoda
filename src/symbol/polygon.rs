@@ -1,20 +1,23 @@
-use crate::{Color, Polygon};
-use crate::symbol::Symbol;
-use lyon::tessellation::{VertexBuffers, FillTessellator, FillOptions, FillRule, FillVertexConstructor, FillVertex, StrokeTessellator, StrokeOptions};
-use lyon::lyon_tessellation::{BuffersBuilder};
-use lyon::math::point;
-use glow::Program;
-use lyon::tessellation::path::Path;
 use crate::symbol::line::{LineVertex, VertexCtor};
+use crate::symbol::Symbol;
+use crate::{Color, Polygon, PolygonRef};
+use glow::Program;
+use lyon::lyon_tessellation::BuffersBuilder;
+use lyon::math::point;
+use lyon::tessellation::path::Path;
+use lyon::tessellation::{
+    FillOptions, FillRule, FillTessellator, FillVertex, FillVertexConstructor, StrokeOptions,
+    StrokeTessellator, VertexBuffers,
+};
 
 pub struct PolygonSymbol {
     pub fill_color: Color,
     pub stroke_width: f32,
     pub stroke_color: Color,
-    pub program: Option<Program>
+    pub program: Option<Program>,
 }
 
-const VERTEX_SHADER: &'static str = r#"
+const VERTEX_SHADER: &str = r#"
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in uint id;
@@ -34,7 +37,7 @@ void main() {
 }
 "#;
 
-const FRAGMENT_SHADER: &'static str = r#"
+const FRAGMENT_SHADER: &str = r#"
 precision mediump float;
 
 in vec4 frag_color;
@@ -76,35 +79,49 @@ impl Symbol<Polygon> for PolygonSymbol {
     }
 
     fn convert(&self, geometry: &Polygon, id: u32) -> (Vec<Self::Vertex>, Option<Vec<u32>>) {
-
         let path = build_geometry(geometry);
         let mut buffers: VertexBuffers<LineVertex, u32> = VertexBuffers::new();
 
-        let mut fill_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.fill_color, id});
+        let mut fill_vertex_builder = BuffersBuilder::new(
+            &mut buffers,
+            VertexCtor {
+                color: self.fill_color,
+                id,
+            },
+        );
         let mut fill_tessellator = FillTessellator::new();
 
-        fill_tessellator.tessellate_path(
-            &path,
-            &FillOptions::default().with_fill_rule(FillRule::EvenOdd),
-            &mut fill_vertex_builder
-        ).unwrap();
+        fill_tessellator
+            .tessellate_path(
+                &path,
+                &FillOptions::default().with_fill_rule(FillRule::EvenOdd),
+                &mut fill_vertex_builder,
+            )
+            .unwrap();
 
-        let mut stroke_vertex_builder = BuffersBuilder::new(&mut buffers, VertexCtor {color: self.stroke_color, id});
+        let mut stroke_vertex_builder = BuffersBuilder::new(
+            &mut buffers,
+            VertexCtor {
+                color: self.stroke_color,
+                id,
+            },
+        );
         let mut stroke_tessellator = StrokeTessellator::new();
 
-        stroke_tessellator.tessellate_path(
-            &path,
-        &StrokeOptions::default().with_line_width(self.stroke_width),
-            &mut stroke_vertex_builder
-        ).unwrap();
+        stroke_tessellator
+            .tessellate_path(
+                &path,
+                &StrokeOptions::default().with_line_width(self.stroke_width),
+                &mut stroke_vertex_builder,
+            )
+            .unwrap();
 
-        let VertexBuffers {vertices, indices} = buffers;
+        let VertexBuffers { vertices, indices } = buffers;
         (vertices, Some(indices))
     }
 }
 
-fn build_geometry(geometry: &Polygon) -> Path {
-
+fn build_geometry(geometry: &PolygonRef) -> Path {
     let mut path_builder = Path::builder();
 
     for contour in geometry {

@@ -1,10 +1,10 @@
+use crate::control::{ControlState, MapControlSettings, MapEventDispatcher};
+use crate::event::{EventListener, HandlerStore, TypedHandlerStore};
 use crate::layer::Layer;
-use crate::control::{ControlState, MapEventDispatcher, MapControlSettings};
 use crate::render_target::RenderTarget;
-use crate::event::{HandlerStore, TypedHandlerStore, EventListener};
 use crate::Point;
-use std::rc::{Weak, Rc};
 use std::cell::RefCell;
+use std::rc::{Rc, Weak};
 
 pub struct Map {
     layers: Vec<Rc<RefCell<dyn Layer>>>,
@@ -12,6 +12,12 @@ pub struct Map {
     animation: Option<MapAnimation>,
     control_state: ControlState,
     handler_store: Rc<RefCell<HandlerStore>>,
+}
+
+impl Default for Map {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Map {
@@ -34,7 +40,7 @@ impl Map {
         }
     }
 
-    pub fn animate_to(&mut self, position: MapPosition, duration: u64) {
+    pub fn animate_to(&mut self, _position: MapPosition, _duration: u64) {
         todo!()
     }
 
@@ -67,7 +73,10 @@ impl Map {
     }
 
     pub fn control(&mut self) -> MapEventDispatcher {
-        MapEventDispatcher { map: self, settings: MapControlSettings::default() }
+        MapEventDispatcher {
+            map: self,
+            settings: MapControlSettings::default(),
+        }
     }
 
     pub fn control_state(&self) -> &ControlState {
@@ -79,10 +88,10 @@ impl Map {
     }
 }
 
-
 impl<E> EventListener<E> for Map
-    where E: Copy,
-          HandlerStore: TypedHandlerStore<E>
+where
+    E: Copy,
+    HandlerStore: TypedHandlerStore<E>,
 {
     fn handler_store(&self) -> Weak<RefCell<HandlerStore>> {
         Rc::downgrade(&self.handler_store)
@@ -115,7 +124,7 @@ impl MapPosition {
         2.0 / self.screen_scale[(1, 1)]
     }
 
-    fn translate(&mut self, dx: f32, dy: f32) {
+    fn translate(&mut self, _dx: f32, _dy: f32) {
         todo!()
     }
 
@@ -124,7 +133,7 @@ impl MapPosition {
         let rotated = self.inverse_rotation() * translate_px;
         let scaled = self.inverse_scale() * rotated;
         let translation = na::Matrix4::new_translation(&scaled.remove_fixed_rows::<1>(3));
-        self.translate = self.translate * translation;
+        self.translate *= translation;
     }
 
     pub fn rotate(&mut self, x: f32, z: f32) {
@@ -135,14 +144,26 @@ impl MapPosition {
     }
 
     pub fn rotation(&self) -> na::Matrix4<f32> {
-        let x = na::Matrix4::from_axis_angle(&na::Unit::new_normalize(na::Vector3::new(1.0, 0.0, 0.0)), self.rotation_x);
-        let z = na::Matrix4::from_axis_angle(&na::Unit::new_normalize(na::Vector3::new(0.0, 0.0, 1.0)), self.rotation_z);
+        let x = na::Matrix4::from_axis_angle(
+            &na::Unit::new_normalize(na::Vector3::new(1.0, 0.0, 0.0)),
+            self.rotation_x,
+        );
+        let z = na::Matrix4::from_axis_angle(
+            &na::Unit::new_normalize(na::Vector3::new(0.0, 0.0, 1.0)),
+            self.rotation_z,
+        );
         x * z
     }
 
     pub fn inverse_rotation(&self) -> na::Matrix4<f32> {
-        let x = na::Matrix4::from_axis_angle(&na::Unit::new_normalize(na::Vector3::new(1.0, 0.0, 0.0)), -self.rotation_x);
-        let z = na::Matrix4::from_axis_angle(&na::Unit::new_normalize(na::Vector3::new(0.0, 0.0, 1.0)), -self.rotation_z);
+        let x = na::Matrix4::from_axis_angle(
+            &na::Unit::new_normalize(na::Vector3::new(1.0, 0.0, 0.0)),
+            -self.rotation_x,
+        );
+        let z = na::Matrix4::from_axis_angle(
+            &na::Unit::new_normalize(na::Vector3::new(0.0, 0.0, 1.0)),
+            -self.rotation_z,
+        );
         z * x
     }
 
@@ -159,8 +180,9 @@ impl MapPosition {
         self.translate[(0, 3)] = -(map_c[0] + dx_scaled);
         self.translate[(1, 3)] = -(map_c[1] + dy_scaled);
 
-        let transformation = na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(delta, delta, delta));
-        self.scale = self.scale * transformation;
+        let transformation =
+            na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(delta, delta, delta));
+        self.scale *= transformation;
     }
 
     pub fn matrix(&self) -> na::Matrix4<f32> {
@@ -168,11 +190,19 @@ impl MapPosition {
     }
 
     pub fn set_screen_size(&mut self, width: u32, height: u32) {
-        self.screen_scale = na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(2.0 / width as f32, 2.0 / height as f32, 2.0 / width as f32));
+        self.screen_scale = na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(
+            2.0 / width as f32,
+            2.0 / height as f32,
+            2.0 / width as f32,
+        ));
     }
 
     pub fn inverse_scale(&self) -> na::Matrix4<f32> {
-        na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(1.0 / self.scale[(0, 0)], 1.0 / self.scale[(1, 1)], 1.0 / self.scale[(2, 2)]))
+        na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(
+            1.0 / self.scale[(0, 0)],
+            1.0 / self.scale[(1, 1)],
+            1.0 / self.scale[(2, 2)],
+        ))
     }
 
     pub fn center(&self) -> Point {
@@ -184,16 +214,27 @@ impl MapPosition {
     }
 
     pub fn inverse_translation(&self) -> na::Matrix4<f32> {
-        na::Matrix4::new_translation(&na::Vector3::new(-self.translate[(0, 3)], -self.translate[(1, 3)], 0.0))
+        na::Matrix4::new_translation(&na::Vector3::new(
+            -self.translate[(0, 3)],
+            -self.translate[(1, 3)],
+            0.0,
+        ))
     }
 
     pub fn half_screen_translation(&self) -> na::Matrix4<f32> {
-        na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(1.0, -1.0, 1.0)) *
-            na::Matrix4::new_translation(&na::Vector3::new(-self.width_px() / 2.0, - self.height_px() / 2.0, 0.0))
+        na::Matrix4::new_nonuniform_scaling(&na::Vector3::new(1.0, -1.0, 1.0))
+            * na::Matrix4::new_translation(&na::Vector3::new(
+                -self.width_px() / 2.0,
+                -self.height_px() / 2.0,
+                0.0,
+            ))
     }
 
     pub fn inverse_screen_transformation(&self) -> na::Matrix4<f32> {
-        self.inverse_translation() * self.inverse_scale() * self.inverse_rotation() * self.half_screen_translation()
+        self.inverse_translation()
+            * self.inverse_scale()
+            * self.inverse_rotation()
+            * self.half_screen_translation()
     }
 
     pub fn get_map_position(&self, px_position: &[i32; 2]) -> Point {
@@ -222,4 +263,17 @@ struct MapAnimation {
     to: MapPosition,
     duration: u64,
     start: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn position_set_center() {
+        let mut position = MapPosition::default();
+        position.set_center(-10.0, 10.0);
+        assert_eq!(-10.0, position.center()[0]);
+        assert_eq!(10.0, position.center()[1]);
+    }
 }

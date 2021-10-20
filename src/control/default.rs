@@ -1,9 +1,10 @@
+use crate::event::{DragEvent, EventListener, EventState, ZoomEvent};
 use crate::map::Map;
-use std::rc::Rc;
-use crate::event::{EventListener, DragEvent, EventState, ZoomEvent};
 use std::cell::RefCell;
+use std::rc::Rc;
 use winit::event::MouseButton;
 
+#[derive(Default)]
 pub struct DefaultMapControl {
     map: Option<Rc<RefCell<Map>>>,
     handlers: HandlerIds,
@@ -17,7 +18,10 @@ struct HandlerIds {
 
 impl DefaultMapControl {
     pub fn new() -> Self {
-        Self {map: None, handlers: HandlerIds::default()}
+        Self {
+            map: None,
+            handlers: HandlerIds::default(),
+        }
     }
 
     pub fn is_attached(&self) -> bool {
@@ -75,11 +79,19 @@ fn handle_middle_button_drag(_: i32, dy: i32, map: &mut Map) -> EventState {
     EventState::Final
 }
 
-fn handle_right_button_drag(dx: i32, dy: i32, map: &mut Map, cursor_position: [i32; 2]) -> EventState {
+fn handle_right_button_drag(
+    dx: i32,
+    dy: i32,
+    map: &mut Map,
+    cursor_position: [i32; 2],
+) -> EventState {
     let position = map.position_mut();
     let center = position.center();
     let position_on_map = position.get_map_position(&cursor_position);
-    let v1 = [center[0] - position_on_map[0], center[1] - position_on_map[1]];
+    let v1 = [
+        center[0] - position_on_map[0],
+        center[1] - position_on_map[1],
+    ];
     let dx = dx as f32 * position.resolution();
     let dy = dy as f32 * position.resolution();
 

@@ -1,13 +1,18 @@
-use crate::render_target::RenderTarget;
-use crate::symbol::{Symbol};
-use crate::map::MapPosition;
-use glow::{HasContext, Context};
 use crate::gl::GlBuffer;
+use crate::map::MapPosition;
+use crate::render_target::RenderTarget;
+use crate::symbol::Symbol;
+use glow::{Context, HasContext};
 use std::rc::Rc;
 
 pub trait Layer {
     fn draw(&mut self, target: &RenderTarget, position: &MapPosition);
-    fn feature_at_point(&self, _target: &RenderTarget, _screen_position: [i32; 2], _map_position: &MapPosition) -> Option<usize> {
+    fn feature_at_point(
+        &self,
+        _target: &RenderTarget,
+        _screen_position: [i32; 2],
+        _map_position: &MapPosition,
+    ) -> Option<usize> {
         None
     }
 }
@@ -21,7 +26,12 @@ pub struct StaticLayer<G, S: Symbol<G>> {
 
 impl<G, S: Symbol<G>> StaticLayer<G, S> {
     pub fn new(symbol: S, features: Vec<G>) -> Self {
-        Self {features, symbol, context: None, buffer: None}
+        Self {
+            features,
+            symbol,
+            context: None,
+            buffer: None,
+        }
     }
 
     pub fn clean(&mut self) {
@@ -61,18 +71,22 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
             let mut vertices = vec![];
             let mut indices = vec![];
             for (id, p) in self.features.iter().enumerate() {
-                let (mut geom_vertices, geom_indexes) = self.symbol.convert(&p, id as u32);
+                let (mut geom_vertices, geom_indexes) = self.symbol.convert(p, id as u32);
                 vertices.append(&mut geom_vertices);
                 if let Some(mut i) = geom_indexes {
                     indices.append(&mut i);
                 }
             }
 
-            if vertices.len() == 0 {
+            if vertices.is_empty() {
                 return;
             }
 
-            let indices = if indices.len() == 0 { None } else { Some(&indices[..]) };
+            let indices = if indices.is_empty() {
+                None
+            } else {
+                Some(&indices[..])
+            };
             self.buffer = Some(GlBuffer::create(&*gl, &vertices, indices));
         }
     }
@@ -87,7 +101,14 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
         self.features.remove(index);
     }
 
-    pub fn draw_with_context(&self, gl: &Context, position: &MapPosition, width: u32, height: u32, drawing_mode: DrawingMode) {
+    pub fn draw_with_context(
+        &self,
+        gl: &Context,
+        position: &MapPosition,
+        width: u32,
+        height: u32,
+        drawing_mode: DrawingMode,
+    ) {
         if self.buffer.is_none() {
             // No object produced any vertices, so skip drawing
             return;
@@ -95,29 +116,52 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
 
         let t = position.matrix();
         let t = [
-            t[(0, 0)], t[(0, 1)], t[(0, 2)], t[(0, 3)],
-            t[(1, 0)], t[(1, 1)], t[(1, 2)], t[(1, 3)],
-            t[(2, 0)], t[(2, 1)], t[(2, 2)], t[(2, 3)],
-            t[(3, 0)], t[(3, 1)], t[(3, 2)], t[(3, 3)],
+            t[(0, 0)],
+            t[(0, 1)],
+            t[(0, 2)],
+            t[(0, 3)],
+            t[(1, 0)],
+            t[(1, 1)],
+            t[(1, 2)],
+            t[(1, 3)],
+            t[(2, 0)],
+            t[(2, 1)],
+            t[(2, 2)],
+            t[(2, 3)],
+            t[(3, 0)],
+            t[(3, 1)],
+            t[(3, 2)],
+            t[(3, 3)],
         ];
 
         unsafe {
             gl.use_program(Some(*self.symbol.program().unwrap()));
 
-            let transformation_location = gl.get_uniform_location(*self.symbol.program().unwrap(), "transformation").unwrap();
+            let transformation_location = gl
+                .get_uniform_location(*self.symbol.program().unwrap(), "transformation")
+                .unwrap();
             gl.uniform_matrix_4_f32_slice(Some(&transformation_location), false, &t);
 
-            let mode_location = gl.get_uniform_location(*self.symbol.program().unwrap(), "mode").unwrap();
+            let mode_location = gl
+                .get_uniform_location(*self.symbol.program().unwrap(), "mode")
+                .unwrap();
             gl.uniform_1_u32(Some(&mode_location), drawing_mode.code());
 
-            if let Some(screen_size_location) = gl.get_uniform_location(*self.symbol.program().unwrap(), "screen_size") {
+            if let Some(screen_size_location) =
+                gl.get_uniform_location(*self.symbol.program().unwrap(), "screen_size")
+            {
                 gl.uniform_2_f32(Some(&screen_size_location), width as f32, height as f32);
             }
 
             let buffer = self.buffer.as_ref().unwrap();
             gl.bind_vertex_array(Some(buffer.vertex_array));
-            if let Some(_) = buffer.index_buffer {
-                gl.draw_elements(glow::TRIANGLES, buffer.vertex_count as i32, glow::UNSIGNED_INT, 0);
+            if buffer.index_buffer.is_some() {
+                gl.draw_elements(
+                    glow::TRIANGLES,
+                    buffer.vertex_count as i32,
+                    glow::UNSIGNED_INT,
+                    0,
+                );
             } else {
                 gl.draw_arrays(glow::TRIANGLES, 0, buffer.vertex_count as i32);
             }
@@ -129,24 +173,44 @@ impl<G, S: Symbol<G>> StaticLayer<G, S> {
 
 impl<G, S: Symbol<G>> Layer for StaticLayer<G, S> {
     fn draw(&mut self, target: &RenderTarget, position: &MapPosition) {
-        if self.features.len() == 0 {
+        if self.features.is_empty() {
             return;
         }
 
         self.set_context(target.context());
 
         let (width, height) = target.get_dimensions();
-        self.draw_with_context(self.context.as_ref().unwrap(), position, width, height, DrawingMode::Normal);
+        self.draw_with_context(
+            self.context.as_ref().unwrap(),
+            position,
+            width,
+            height,
+            DrawingMode::Normal,
+        );
     }
 
-    fn feature_at_point(&self, target: &RenderTarget, screen_position: [i32; 2], map_position: &MapPosition) -> Option<usize> {
+    fn feature_at_point(
+        &self,
+        target: &RenderTarget,
+        screen_position: [i32; 2],
+        map_position: &MapPosition,
+    ) -> Option<usize> {
         let mut position = map_position.clone();
         let (width, height) = target.get_dimensions();
-        position.translate_px(-screen_position[0] + width as i32 / 2, screen_position[1] - height as i32 / 2);
+        position.translate_px(
+            -screen_position[0] + width as i32 / 2,
+            screen_position[1] - height as i32 / 2,
+        );
         position.set_screen_size(1, 1);
 
         let virtual_context = target.get_virtual_context(1, 1);
-        self.draw_with_context(virtual_context.gl(), &position, 1, 1, DrawingMode::Selection);
+        self.draw_with_context(
+            virtual_context.gl(),
+            &position,
+            1,
+            1,
+            DrawingMode::Selection,
+        );
         unsafe {
             virtual_context.gl().finish();
         }

@@ -28,14 +28,38 @@ impl RenderTarget {
             let texture = gl.create_texture().unwrap();
             gl.bind_texture(glow::TEXTURE_2D, Some(texture));
 
-            gl.tex_image_2d(glow::TEXTURE_2D, 0, glow::RGBA as i32, width as i32, height as i32, 0, glow::RGBA, glow::UNSIGNED_BYTE, None);
+            gl.tex_image_2d(
+                glow::TEXTURE_2D,
+                0,
+                glow::RGBA as i32,
+                width as i32,
+                height as i32,
+                0,
+                glow::RGBA,
+                glow::UNSIGNED_BYTE,
+                None,
+            );
 
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MAG_FILTER, glow::NEAREST as i32);
-            gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_MIN_FILTER, glow::NEAREST as i32);
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MAG_FILTER,
+                glow::NEAREST as i32,
+            );
+            gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MIN_FILTER,
+                glow::NEAREST as i32,
+            );
 
             // depth buffer goes in here
 
-            gl.framebuffer_texture_2d(glow::FRAMEBUFFER, glow::COLOR_ATTACHMENT0, glow::TEXTURE_2D, Some(texture), 0);
+            gl.framebuffer_texture_2d(
+                glow::FRAMEBUFFER,
+                glow::COLOR_ATTACHMENT0,
+                glow::TEXTURE_2D,
+                Some(texture),
+                0,
+            );
 
             gl.draw_buffers(&[glow::COLOR_ATTACHMENT0]);
 
@@ -46,7 +70,11 @@ impl RenderTarget {
                 eprintln!("Something wrong");
             }
 
-            VirtualContext {gl: gl.clone(), framebuffer, texture}
+            VirtualContext {
+                gl: gl.clone(),
+                framebuffer,
+                texture,
+            }
         }
     }
 }
@@ -66,7 +94,8 @@ impl VirtualContext {
         let mut buffer = [0; 4];
         let pack = glow::PixelPackData::Slice(&mut buffer);
         unsafe {
-            self.gl.read_pixels(0, 0, 1, 1, glow::RGBA, glow::UNSIGNED_BYTE, pack);
+            self.gl
+                .read_pixels(0, 0, 1, 1, glow::RGBA, glow::UNSIGNED_BYTE, pack);
         }
         let bytes = [buffer[0], buffer[1], buffer[2], 0];
         u32::from_le_bytes(bytes)

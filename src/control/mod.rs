@@ -1,9 +1,11 @@
 mod default;
 pub use default::DefaultMapControl;
 
+use crate::event::{
+    ClickEvent, DragEvent, EventListener, HandlerStore, TypedHandlerStore, ZoomEvent,
+};
 use crate::map::Map;
-use crate::event::{ClickEvent, HandlerStore, TypedHandlerStore, EventListener, DragEvent, ZoomEvent};
-use winit::event::{WindowEvent, ElementState, MouseButton, MouseScrollDelta};
+use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
 
 #[derive(Debug)]
 pub struct MouseState {
@@ -38,7 +40,7 @@ impl MouseState {
             MouseButton::Left => self.left_button_down_position = val,
             MouseButton::Right => self.right_button_down_position = val,
             MouseButton::Middle => self.middle_button_down_position = val,
-            MouseButton::Other(_) => {},
+            MouseButton::Other(_) => {}
         }
     }
 
@@ -56,7 +58,9 @@ impl MouseState {
     }
 
     fn any_button_pressed(&self) -> bool {
-        self.button_pressed(MouseButton::Left) || self.button_pressed(MouseButton::Middle) || self.button_pressed(MouseButton::Right)
+        self.button_pressed(MouseButton::Left)
+            || self.button_pressed(MouseButton::Middle)
+            || self.button_pressed(MouseButton::Right)
     }
 }
 
@@ -104,38 +108,54 @@ impl<'a> MapEventDispatcher<'a> {
         use WindowEvent::*;
 
         match event {
-            MouseInput {button, state, ..} => {
-                match state {
-                    ElementState::Pressed => self.mouse_pressed(*button),
-                    ElementState::Released => self.mouse_released(*button),
-                }
+            MouseInput { button, state, .. } => match state {
+                ElementState::Pressed => self.mouse_pressed(*button),
+                ElementState::Released => self.mouse_released(*button),
             },
-            CursorMoved {position, ..} => self.cursor_moved(position.x as i32, position.y as i32),
-            MouseWheel {delta, ..} => self.wheel(*delta),
-            _ => {},
+            CursorMoved { position, .. } => self.cursor_moved(position.x as i32, position.y as i32),
+            MouseWheel { delta, .. } => self.wheel(*delta),
+            _ => {}
         }
     }
 
     fn mouse_pressed(&mut self, button: MouseButton) {
-        self.map.control_state_mut().mouse_state.capture_button_pressed(button);
+        self.map
+            .control_state_mut()
+            .mouse_state
+            .capture_button_pressed(button);
     }
 
     fn mouse_released(&mut self, button: MouseButton) {
         let state = self.map.control_state();
 
-        if displacement(state.mouse_state.button_pressed_position(button), state.mouse_state.cursor_position) <= self.settings.max_click_displacement {
-            self.trigger(ClickEvent {cursor_position: self.map.control_state().mouse_state.cursor_position, button});
+        if displacement(
+            state.mouse_state.button_pressed_position(button),
+            state.mouse_state.cursor_position,
+        ) <= self.settings.max_click_displacement
+        {
+            self.trigger(ClickEvent {
+                cursor_position: self.map.control_state().mouse_state.cursor_position,
+                button,
+            });
         }
 
-        self.map.control_state_mut().mouse_state.capture_button_released(button);
+        self.map
+            .control_state_mut()
+            .mouse_state
+            .capture_button_released(button);
     }
 
     fn trigger<E>(&mut self, event: E)
-        where E: Copy,
-              HandlerStore: TypedHandlerStore<E>
+    where
+        E: Copy,
+        HandlerStore: TypedHandlerStore<E>,
     {
-        let store = if let Some(s) = self.map.handler_store().upgrade() { s } else { return; };
-        TypedHandlerStore::trigger_event(&store, event, &mut self.map);
+        let store = if let Some(s) = self.map.handler_store().upgrade() {
+            s
+        } else {
+            return;
+        };
+        TypedHandlerStore::trigger_event(&store, event, self.map);
     }
 
     fn cursor_moved(&mut self, x: i32, y: i32) {
@@ -154,11 +174,26 @@ impl<'a> MapEventDispatcher<'a> {
             // event struct to provide information about all the buttons, rather then firing
             // several events at once.
             if state.button_pressed(MouseButton::Left) {
-                self.trigger(DragEvent {dx, dy, button: MouseButton::Left, curr_cursor_position});
+                self.trigger(DragEvent {
+                    dx,
+                    dy,
+                    button: MouseButton::Left,
+                    curr_cursor_position,
+                });
             } else if state.button_pressed(MouseButton::Right) {
-                self.trigger(DragEvent {dx, dy, button: MouseButton::Right, curr_cursor_position});
+                self.trigger(DragEvent {
+                    dx,
+                    dy,
+                    button: MouseButton::Right,
+                    curr_cursor_position,
+                });
             } else if state.button_pressed(MouseButton::Middle) {
-                self.trigger(DragEvent {dx, dy, button: MouseButton::Middle, curr_cursor_position});
+                self.trigger(DragEvent {
+                    dx,
+                    dy,
+                    button: MouseButton::Middle,
+                    curr_cursor_position,
+                });
             }
         }
 
@@ -166,7 +201,14 @@ impl<'a> MapEventDispatcher<'a> {
     }
 
     fn wheel(&mut self, delta: MouseScrollDelta) {
-        if self.map.control_state().last_zoom_time.elapsed().as_millis() < self.settings.zoom_delay as u128 {
+        if self
+            .map
+            .control_state()
+            .last_zoom_time
+            .elapsed()
+            .as_millis()
+            < self.settings.zoom_delay as u128
+        {
             return;
         }
 
@@ -185,7 +227,10 @@ impl<'a> MapEventDispatcher<'a> {
         };
 
         let delta = delta.powf(self.settings.mouse_wheel_speed);
-        self.trigger(ZoomEvent {delta, cursor_position: self.map.control_state().mouse_state.cursor_position});
+        self.trigger(ZoomEvent {
+            delta,
+            cursor_position: self.map.control_state().mouse_state.cursor_position,
+        });
 
         self.map.control_state_mut().last_zoom_time = instant::Instant::now();
     }
