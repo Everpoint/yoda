@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Everpoint/yoda/branch/main/graph/badge.svg?token=VYKFAFF6ET)](https://codecov.io/gh/Everpoint/yoda)
+
 Yoda is a general purpose cross-platform GIS map engine.
 
 It is in early development stage, thus lack of documentation. But you can run the
