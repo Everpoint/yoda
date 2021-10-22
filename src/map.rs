@@ -242,6 +242,38 @@ impl MapPosition {
         let transformed = self.inverse_screen_transformation() * point;
         [transformed[0], transformed[1]]
     }
+
+    pub fn get_envelope(&self) -> Envelope {
+        let resolution = self.resolution();
+        let half_width = self.width_px() / 2.0 * resolution;
+        let half_height = self.height_px() / 2.0 * resolution;
+        let center = self.center();
+
+        Envelope {
+            x_min: center[0] - half_width,
+            y_min: center[1] - half_height,
+            x_max: center[0] + half_width,
+            y_max: center[1] + half_height,
+        }
+    }
+}
+
+pub struct Envelope {
+    pub x_min: f32,
+    pub y_min: f32,
+    pub x_max: f32,
+    pub y_max: f32,
+}
+
+impl Envelope {
+    pub fn new(x_min: f32, y_min: f32, x_max: f32, y_max: f32) -> Self {
+        Self {
+            x_min,
+            y_min,
+            x_max,
+            y_max,
+        }
+    }
 }
 
 impl Default for MapPosition {
