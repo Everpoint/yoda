@@ -83,6 +83,7 @@ impl WasmRuntime {
 
         event_loop.run(move |event, _, control_flow| {
             let size = window.inner_size();
+
             super::event_loop_cycle(
                 event,
                 control_flow,

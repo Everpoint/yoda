@@ -1,15 +1,17 @@
-use crate::control::DefaultMapControl;
-use crate::map::Map;
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use glow::{Context, HasContext};
 use glutin::window::Window;
 use glutin::{ContextWrapper, PossiblyCurrent};
-use std::cell::RefCell;
-use std::rc::Rc;
+
+use crate::control::DefaultMapControl;
+use crate::map::Map;
 
 pub struct NativeRuntime {
     map: Map,
     context: Rc<Context>,
-    window: ContextWrapper<PossiblyCurrent, Window>,
+    window_context: ContextWrapper<PossiblyCurrent, Window>,
     event_loop: glutin::event_loop::EventLoop<()>,
     control: DefaultMapControl,
 }
@@ -43,7 +45,7 @@ impl NativeRuntime {
         Self {
             map,
             context: Rc::new(gl),
-            window,
+            window_context: window,
             event_loop,
             control,
         }
@@ -61,7 +63,7 @@ impl NativeRuntime {
         let NativeRuntime {
             context,
             map,
-            window,
+            window_context,
             event_loop,
             mut control,
         } = self;
@@ -69,17 +71,20 @@ impl NativeRuntime {
         control.attach(map.clone());
 
         event_loop.run(move |event, _, control_flow| {
-            let window_size = window.window().inner_size();
-            super::event_loop_cycle(
+            let size = window_context.window().inner_size();
+
+            let redraw_requested = super::event_loop_cycle(
                 event,
                 control_flow,
                 &mut *map.borrow_mut(),
                 context.clone(),
-                window_size.width,
-                window_size.height,
+                size.width,
+                size.height,
             );
 
-            window.swap_buffers().unwrap();
+            if redraw_requested {
+                window_context.swap_buffers().unwrap();
+            }
         });
     }
 }
